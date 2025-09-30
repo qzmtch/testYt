@@ -29,18 +29,83 @@ namespace YtDlpGui.Wpf.Services
         }
 
         public async Task<int> DownloadAsync(string url, string formatSelector, string outputTemplate, string subLangs, bool writeSubs,
-                                            IProgress<(double percent, string line)> progress, CancellationToken ct)
-        {
-            var sb = new StringBuilder();
-            sb.Append($"-f {formatSelector} ");
-            sb.Append("--ignore-config ");
-            if (writeSubs && !string.IsNullOrWhiteSpace(subLangs))
-                sb.Append($"--write-subs --sub-langs \"{subLangs}\" ");
-            sb.Append($"-o \"{outputTemplate}\" ");
-            sb.Append($"\"{url}\"");
+                                    IProgress<(double percent, string line)> progress, CancellationToken ct)
+{
+    var sb = new StringBuilder();
+    sb.Append($"-f {formatSelector} ");
+    sb.Append("--ignore-config ");
+    // важное: сделать строки «построчными» и без ANSI
+    sb.Append("--newline --no-color ");
+    if (writeSubs && !string.IsNullOrWhiteSpace(subLangs))
+        sb.Append($"--write-subs --sub-langs \"{subLangs}\" ");
+    sb.Append($"-o \"{outputTemplate}\" ");
+    sb.Append($"\"{url}\"");
 
-            return await RunWithProgressAsync(YtDlpPath, sb.ToString(), progress, ct).ConfigureAwait(false);
+    return await RunWithProgressAsync(YtDlpPath, sb.ToString(), progress, ct).ConfigureAwait(false);
+}
+
+private async Task<int> RunWithProgressAsync(string file, string args, IProgress<(double, string)> progress, CancellationToken ct)
+{
+    var psi = new ProcessStartInfo(file, args)
+    {
+        UseShellExecute = false,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        CreateNoWindow = true,
+        StandardOutputEncoding = Encoding.UTF8,
+        StandardErrorEncoding = Encoding.UTF8,
+    };
+
+    using (var p = new Process { StartInfo = psi, EnableRaisingEvents = true })
+    {
+        var tcsExit = new TaskCompletionSource<int>();
+
+        p.ErrorDataReceived += (_, e) =>
+        {
+            if (string.IsNullOrEmpty(e.Data)) return;
+            var (percent, line) = Utils.ProgressLineParser.TryParse(e.Data);
+            progress?.Report((percent, e.Data));
+        };
+
+        p.Exited += (_, __) =>
+        {
+            try { tcsExit.TrySetResult(p.ExitCode); } catch { }
+        };
+
+        p.Start();
+        p.BeginErrorReadLine();
+        // читаем stdout, чтобы не заблокироваться
+        var stdoutTask = p.StandardOutput.ReadToEndAsync();
+
+        // связываем отмену с убийством процесса
+        using (ct.Register(() =>
+        {
+            try
+            {
+                if (!p.HasExited)
+                    p.Kill();
+            }
+            catch { }
+            finally
+            {
+                tcsExit.TrySetCanceled();
+            }
+        }))
+        {
+            try
+            {
+                var exitCode = await tcsExit.Task.ConfigureAwait(false);
+                // дочитаем stdout
+                try { await stdoutTask.ConfigureAwait(false); } catch { }
+                return exitCode;
+            }
+            catch (TaskCanceledException)
+            {
+                throw new OperationCanceledException(ct);
+            }
         }
+    }
+}
 
         private async Task<string> RunAndReadStdOutAsync(string file, string args, CancellationToken ct)
         {
@@ -72,34 +137,6 @@ namespace YtDlpGui.Wpf.Services
             }
         }
 
-        private async Task<int> RunWithProgressAsync(string file, string args, IProgress<(double, string)> progress, CancellationToken ct)
-        {
-            var psi = new ProcessStartInfo(file, args)
-            {
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
-            };
-
-            using (var p = new Process { StartInfo = psi, EnableRaisingEvents = true })
-            {
-                p.ErrorDataReceived += (_, e) =>
-                {
-                    if (string.IsNullOrEmpty(e.Data)) return;
-                    var (percent, line) = Utils.ProgressLineParser.TryParse(e.Data);
-                    progress?.Report((percent, e.Data));
-                };
-
-                p.Start();
-                p.BeginErrorReadLine();
-                _ = p.StandardOutput.ReadToEndAsync();
-
-                await Task.Run(() => p.WaitForExit(), ct);
-                return p.ExitCode;
-            }
-        }
+        
     }
 }
