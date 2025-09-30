@@ -1,7 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Цвета -->
     <Color x:Key="PrimaryColor">#FF4F46E5</Color>
     <Color x:Key="PrimaryDark">#FF4338CA</Color>
     <Color x:Key="AccentColor">#FF22D3EE</Color>
@@ -17,10 +16,9 @@
     <SolidColorBrush x:Key="Brush.Border" Color="{StaticResource BorderColor}"/>
     <SolidColorBrush x:Key="Brush.Text" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="Brush.Muted" Color="#CCFFFFFF"/>
-    <SolidColorBrush x:Key="Brush.ItemHover" Color="#2233FFFFFF"/>
+    <SolidColorBrush x:Key="Brush.ItemHover" Color="#22FFFFFF"/>
     <SolidColorBrush x:Key="Brush.ItemSel" Color="#334F46E5"/>
 
-    <!-- Базовые -->
     <Style TargetType="Window">
         <Setter Property="Background" Value="{StaticResource Brush.Bg}"/>
         <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
@@ -34,7 +32,6 @@
         <Setter Property="TextWrapping" Value="NoWrap"/>
     </Style>
 
-    <!-- Карточка (убран Foreground — у Border его нет) -->
     <Style x:Key="Card" TargetType="Border">
         <Setter Property="CornerRadius" Value="10"/>
         <Setter Property="Background" Value="{StaticResource Brush.Card}"/>
@@ -49,7 +46,6 @@
         </Setter>
     </Style>
 
-    <!-- Кнопка -->
     <Style TargetType="Button">
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="Background" Value="{StaticResource Brush.Primary}"/>
@@ -78,7 +74,6 @@
         </Setter>
     </Style>
 
-    <!-- Текстбокс -->
     <Style TargetType="TextBox">
         <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
         <Setter Property="Background" Value="#1AFFFFFF"/>
@@ -99,7 +94,6 @@
         </Setter>
     </Style>
 
-    <!-- Стрелка комбобокса -->
     <ControlTemplate x:Key="ComboToggle" TargetType="{x:Type ToggleButton}">
         <Border Background="Transparent" Padding="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Grid>
@@ -109,7 +103,6 @@
         </Border>
     </ControlTemplate>
 
-    <!-- Комбобокс -->
     <Style TargetType="ComboBox">
         <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
         <Setter Property="Background" Value="#1AFFFFFF"/>
@@ -182,7 +175,6 @@
         </Setter>
     </Style>
 
-    <!-- Радиокнопка -->
     <Style TargetType="RadioButton">
         <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -210,7 +202,6 @@
         </Setter>
     </Style>
 
-    <!-- Чекбокс -->
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -239,7 +230,6 @@
         </Setter>
     </Style>
 
-    <!-- Прогресс -->
     <Style TargetType="ProgressBar">
         <Setter Property="Height" Value="6"/>
         <Setter Property="Foreground" Value="{StaticResource Brush.Accent}"/>
