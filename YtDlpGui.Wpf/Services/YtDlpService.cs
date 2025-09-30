@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ namespace YtDlpGui.Wpf.Services
 {
     public class YtDlpService
     {
-        public string YtDlpPath { get; set; } = "yt-dlp.exe"; // если в PATH
+        public string YtDlpPath { get; set; } = "yt-dlp.exe";
 
         public async Task<YtDlpInfo> GetInfoAsync(string url, CancellationToken ct)
         {
@@ -20,13 +19,13 @@ namespace YtDlpGui.Wpf.Services
             if (string.IsNullOrWhiteSpace(json))
                 throw new InvalidOperationException("yt-dlp вернул пустой JSON. Проверьте ссылку или доступность yt-dlp.");
 
-            // 1) JavaScriptSerializer (встроенный в .NET Framework)
             var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue, RecursionLimit = 256 };
             var obj = serializer.Deserialize<YtDlpInfo>(json);
             return obj;
 
-            // 2) Альтернатива: System.Text.Json (требует пакет в .NET Framework)
-            //return DeserializeWithSystemTextJson(json);
+            // Альтернатива: System.Text.Json (нужен пакет в .NET Framework 4.7.2)
+            //return System.Text.Json.JsonSerializer.Deserialize<YtDlpInfo>(json,
+            //    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
         public async Task<int> DownloadAsync(string url, string formatSelector, string outputTemplate, string subLangs, bool writeSubs,
@@ -36,9 +35,7 @@ namespace YtDlpGui.Wpf.Services
             sb.Append($"-f {formatSelector} ");
             sb.Append("--ignore-config ");
             if (writeSubs && !string.IsNullOrWhiteSpace(subLangs))
-            {
                 sb.Append($"--write-subs --sub-langs \"{subLangs}\" ");
-            }
             sb.Append($"-o \"{outputTemplate}\" ");
             sb.Append($"\"{url}\"");
 
@@ -61,8 +58,8 @@ namespace YtDlpGui.Wpf.Services
             {
                 var tcs = new TaskCompletionSource<int>();
                 p.Exited += (_, __) => tcs.TrySetResult(p.ExitCode);
-
                 p.Start();
+
                 string stdout = await p.StandardOutput.ReadToEndAsync();
                 string stderr = await p.StandardError.ReadToEndAsync();
 
@@ -98,25 +95,11 @@ namespace YtDlpGui.Wpf.Services
 
                 p.Start();
                 p.BeginErrorReadLine();
-                // stdout часто не нужен, но вычитаем чтобы не заблокироваться
                 _ = p.StandardOutput.ReadToEndAsync();
 
                 await Task.Run(() => p.WaitForExit(), ct);
                 return p.ExitCode;
             }
         }
-
-#if USE_SYSTEM_TEXT_JSON
-        // Требуется NuGet пакет System.Text.Json для .NET Framework
-        private YtDlpInfo DeserializeWithSystemTextJson(string json)
-        {
-            var options = new System.Text.Json.JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip,
-            };
-            return System.Text.Json.JsonSerializer.Deserialize<YtDlpInfo>(json, options);
-        }
-#endif
     }
 }
