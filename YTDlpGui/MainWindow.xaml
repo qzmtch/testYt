@@ -1,99 +1,150 @@
-<Window x:Class="YTDlpGui.MainWindow"
+<Window x:Class="YtDlpGui.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="yt-dlp GUI" Width="1200" Height="760" WindowStartupLocation="CenterScreen">
-  <Grid Margin="16" RowDefinitions="Auto,Auto,*,Auto,Auto" ColumnDefinitions="*">
-    <!-- Header -->
-    <Border Style="{StaticResource PanelCard}" Padding="16" Margin="0,0,0,12">
-      <DockPanel LastChildFill="True">
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-          <TextBlock Text="yt-dlp GUI" FontSize="20" FontWeight="Bold" />
-          <TextBlock Text="  —  .NET Framework 4.7.2" Foreground="{StaticResource SubTextBrush}" VerticalAlignment="Center"/>
-        </StackPanel>
+        Title="yt-dlp GUI (net472)" Height="720" Width="1100"
+        Background="{StaticResource BgBrush}" Foreground="{StaticResource FgBrush}">
+  <Grid Margin="16">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right" >
-          <TextBlock Text="Тема:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-          <ToggleButton x:Name="ThemeToggle" Content="Dark" Checked="ThemeToggle_Checked" Unchecked="ThemeToggle_Unchecked" />
-        </StackPanel>
-      </DockPanel>
-    </Border>
+    <!-- Шапка -->
+    <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,10">
+      <TextBlock Text="yt-dlp GUI" FontSize="20" FontWeight="SemiBold" Margin="0,0,8,0"/>
+      <TextBlock Text="• .NET Framework 4.7.2" Foreground="{StaticResource SubFgBrush}" VerticalAlignment="Center"/>
+      <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+        <Button Name="ThemeBtn" Content="Тема" Click="ThemeBtn_Click" ToolTip="Переключить тему"/>
+        <Button Name="AboutBtn" Content="О программе" Click="AboutBtn_Click"/>
+      </StackPanel>
+    </DockPanel>
 
-    <!-- URL + controls -->
-    <Border Grid.Row="1" Style="{StaticResource PanelCard}" Padding="16" Margin="0,0,0,12">
-      <Grid ColumnDefinitions="*,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
-        <TextBox x:Name="UrlBox" Grid.ColumnSpan="1" Grid.Row="0" MinWidth="500" 
-                 ToolTip="Вставьте ссылку на видео" />
-        <Button Grid.Column="1" Grid.Row="0" Click="BtnFetch_Click" Content="Получить" />
-        <Button Grid.Column="2" Grid.Row="0" Click="BtnCheckYtDlp_Click" Content="Проверить yt-dlp" />
-        <Button Grid.Column="3" Grid.Row="0" Click="BtnClear_Click" Content="Очистить" />
-
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Orientation="Horizontal" Margin="0,12,0,0">
-          <TextBlock Text="Формат:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-          <ComboBox x:Name="FormatExtCombo" Width="140" SelectionChanged="Filter_SelectionChanged"/>
-          <TextBlock Text="Тип:" VerticalAlignment="Center" Margin="12,0,6,0"/>
-          <ComboBox x:Name="TypeCombo" Width="160" SelectionChanged="Filter_SelectionChanged"/>
-          <TextBlock Text="Качество:" VerticalAlignment="Center" Margin="12,0,6,0"/>
-          <ComboBox x:Name="QualityCombo" Width="160" SelectionChanged="Filter_SelectionChanged"/>
-          <CheckBox x:Name="CbSubtitles" Content="Субтитры (если есть)" Margin="12,0,0,0"/>
-        </StackPanel>
-      </Grid>
-    </Border>
-
-    <!-- Content: left info, right thumbnail -->
-    <Grid Grid.Row="2" ColumnDefinitions="2*,3*" ColumnSpacing="12">
-      <Border Style="{StaticResource PanelCard}">
-        <Grid>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-          </Grid.RowDefinitions>
-          <StackPanel>
-            <TextBlock x:Name="TitleText" FontSize="17" FontWeight="Bold" TextWrapping="Wrap" />
-            <TextBlock x:Name="UrlResolvedText" Foreground="{StaticResource SubTextBrush}" TextWrapping="Wrap" />
-          </StackPanel>
-          <ListView x:Name="FormatsList" Grid.Row="1" Margin="0,12,0,12" SelectionMode="Single">
-            <ListView.View>
-              <GridView>
-                <GridViewColumn Header="ID" DisplayMemberBinding="{Binding FormatId}" Width="140" />
-                <GridViewColumn Header="Контейнер" DisplayMemberBinding="{Binding Ext}" Width="80" />
-                <GridViewColumn Header="Качество" DisplayMemberBinding="{Binding Resolution}" Width="110" />
-                <GridViewColumn Header="FPS" DisplayMemberBinding="{Binding Fps}" Width="60" />
-                <GridViewColumn Header="VCodec" DisplayMemberBinding="{Binding VCodec}" Width="120" />
-                <GridViewColumn Header="ACodec" DisplayMemberBinding="{Binding ACodec}" Width="120" />
-                <GridViewColumn Header="Битрейт" DisplayMemberBinding="{Binding Tbr}" Width="90" />
-                <GridViewColumn Header="Примечание" DisplayMemberBinding="{Binding Note}" Width="220" />
-              </GridView>
-            </ListView.View>
-          </ListView>
-          <TextBlock Grid.Row="2" Text="Выберите формат из списка или задайте фильтры сверху" Foreground="{StaticResource SubTextBrush}"/>
-        </Grid>
-      </Border>
-
-      <Border Grid.Column="1" Style="{StaticResource PanelCard}">
-        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,*">
-          <Image x:Name="ThumbImage" Grid.ColumnSpan="2" Height="200" Stretch="UniformToFill" Margin="0,0,0,8"/>
-          <TextBlock Text="Описание:" Grid.Row="1" FontWeight="SemiBold" />
-          <ScrollViewer Grid.Row="1" Grid.Column="1" Margin="8,0,0,0">
-            <TextBlock x:Name="DescText" TextWrapping="Wrap" />
-          </ScrollViewer>
-        </Grid>
-      </Border>
+    <!-- Ввод URL и кнопки -->
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <TextBox x:Name="UrlTextBox" Grid.Column="0" Height="32" VerticalAlignment="Center" 
+               PlaceholderText="Вставьте ссылку на видео" Text="" />
+      <Button Grid.Column="1" Content="Получить форматы" Click="FetchBtn_Click" />
+      <Button Grid.Column="2" Content="Скачать" Click="DownloadBtn_Click" IsEnabled="False" x:Name="DownloadBtn"/>
+      <Button Grid.Column="3" Content="Отмена" Click="CancelBtn_Click" IsEnabled="False" x:Name="CancelBtn"/>
     </Grid>
 
-    <!-- Actions -->
-    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,12">
-      <Button x:Name="BtnDownload" Content="Скачать" Click="BtnDownload_Click"/>
-      <Button x:Name="BtnCancel" Content="Отмена" Click="BtnCancel_Click"/>
-      <Button x:Name="BtnOpenFolder" Content="Открыть папку" Click="BtnOpenFolder_Click"/>
-    </StackPanel>
+    <!-- Основная зона -->
+    <Grid Grid.Row="2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="2*"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
 
-    <!-- Progress + log -->
-    <Border Grid.Row="4" Style="{StaticResource PanelCard}">
-      <Grid RowDefinitions="Auto,*" RowSpacing="8">
-        <ProgressBar x:Name="Progress" Minimum="0" Maximum="100" />
-        <TextBox x:Name="LogBox" Grid.Row="1" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" FontFamily="Consolas" Background="{StaticResource PanelBrush}" />
-      </Grid>
-    </Border>
+      <!-- Список форматов -->
+      <DockPanel Grid.Column="0" Margin="0,0,8,0">
+        <!-- Фильтры -->
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+          <ComboBox x:Name="ExtFilter" Width="120" SelectionChanged="Filter_Changed" PlaceholderText="ext">
+            <ComboBoxItem Content="Все"/>
+          </ComboBox>
+          <ComboBox x:Name="ResFilter" Width="130" SelectionChanged="Filter_Changed" PlaceholderText="resolution">
+            <ComboBoxItem Content="Все"/>
+          </ComboBox>
+          <ComboBox x:Name="VCodecFilter" Width="150" SelectionChanged="Filter_Changed" PlaceholderText="vcodec">
+            <ComboBoxItem Content="Все"/>
+          </ComboBox>
+          <ComboBox x:Name="ACodecFilter" Width="150" SelectionChanged="Filter_Changed" PlaceholderText="acodec">
+            <ComboBoxItem Content="Все"/>
+          </ComboBox>
+          <ComboBox x:Name="FpsFilter" Width="100" SelectionChanged="Filter_Changed" PlaceholderText="fps">
+            <ComboBoxItem Content="Все"/>
+          </ComboBox>
+        </StackPanel>
+
+        <DataGrid x:Name="FormatsGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
+                  MouseDoubleClick="FormatsGrid_MouseDoubleClick">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="ID" Binding="{Binding format_id}" Width="100"/>
+            <DataGridTextColumn Header="ext" Binding="{Binding ext}" Width="60"/>
+            <DataGridTextColumn Header="Res" Binding="{Binding resolution}" Width="100"/>
+            <DataGridTextColumn Header="FPS" Binding="{Binding fps}" Width="60"/>
+            <DataGridTextColumn Header="vcodec" Binding="{Binding vcodec}" Width="150"/>
+            <DataGridTextColumn Header="acodec" Binding="{Binding acodec}" Width="150"/>
+            <DataGridTextColumn Header="tbr" Binding="{Binding tbr}" Width="80"/>
+            <DataGridTextColumn Header="note" Binding="{Binding format_note}" Width="*"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </DockPanel>
+
+      <!-- Карточка инфо + настройки -->
+      <StackPanel Grid.Column="1">
+        <Border Background="{StaticResource CardBrush}" CornerRadius="10" Padding="12" Margin="0,0,0,8">
+          <StackPanel>
+            <TextBlock Text="Информация" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <TextBlock Text="Заголовок:" Foreground="{StaticResource SubFgBrush}" />
+            <TextBlock x:Name="TitleText" Text="-" TextWrapping="Wrap" Margin="0,0,0,8"/>
+            <TextBlock Text="Источник:" Foreground="{StaticResource SubFgBrush}" />
+            <TextBlock x:Name="SourceText" Text="-" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <Border Background="{StaticResource CardBrush}" CornerRadius="10" Padding="12" Margin="0,0,0,8">
+          <StackPanel>
+            <TextBlock Text="Выбор формата" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <CheckBox x:Name="AutoMuxCheck" Content="Если формат без звука — слить с bestaudio" IsChecked="True"/>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Предпочт. аудио:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+              <ComboBox x:Name="AudioPrefer" Width="120">
+                <ComboBoxItem Content="auto" IsSelected="True"/>
+                <ComboBoxItem Content="m4a"/>
+                <ComboBoxItem Content="webm"/>
+                <ComboBoxItem Content="opus"/>
+              </ComboBox>
+            </StackPanel>
+
+            <TextBlock Text="Субтитры" FontWeight="SemiBold" Margin="0,12,0,8"/>
+            <CheckBox x:Name="WriteSubs" Content="Скачать субтитры" />
+            <CheckBox x:Name="EmbedSubs" Content="Встроить субтитры (если поддерживается)" />
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Язык:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+              <ComboBox x:Name="SubsLang" Width="120">
+                <ComboBoxItem Content="auto" IsSelected="True"/>
+              </ComboBox>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <Border Background="{StaticResource CardBrush}" CornerRadius="10" Padding="12">
+          <StackPanel>
+            <TextBlock Text="Пути" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="yt-dlp:" VerticalAlignment="Center" Width="60"/>
+              <TextBox x:Name="YtDlpPath" Width="320" Text="yt-dlp.exe"/>
+              <Button Content="..." Width="36" Click="PickYtDlp_Click"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="ffmpeg:" VerticalAlignment="Center" Width="60"/>
+              <TextBox x:Name="FfmpegPath" Width="320" Text="ffmpeg.exe"/>
+              <Button Content="..." Width="36" Click="PickFfmpeg_Click"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Папка:" VerticalAlignment="Center" Width="60"/>
+              <TextBox x:Name="OutputFolder" Width="320"/>
+              <Button Content="..." Width="36" Click="PickFolder_Click"/>
+            </StackPanel>
+            <TextBlock Text="Шаблон имени: %(title)s [%(id)s].%(ext)s" Foreground="{StaticResource SubFgBrush}"/>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </Grid>
+
+    <!-- Статус/прогресс -->
+    <StackPanel Grid.Row="3">
+      <ProgressBar x:Name="Progress" Minimum="0" Maximum="100" Value="0"/>
+      <TextBlock x:Name="StatusText" Text="Готово" Foreground="{StaticResource SubFgBrush}"/>
+    </StackPanel>
   </Grid>
 </Window>
