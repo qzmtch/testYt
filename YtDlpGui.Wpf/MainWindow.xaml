@@ -10,11 +10,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Заголовок -->
         <StackPanel Orientation="Horizontal">
             <TextBlock Text="yt-dlp GUI" FontWeight="SemiBold" FontSize="18"/>
             <TextBlock Text=" · NET Framework 4.7.2" Margin="8,0,0,0" Foreground="{StaticResource Brush.Muted}"/>
         </StackPanel>
 
+        <!-- Карта контента -->
         <Border Grid.Row="2" Style="{StaticResource Card}">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -22,6 +24,7 @@
                     <ColumnDefinition Width="3*"/>
                 </Grid.ColumnDefinitions>
 
+                <!-- Левая панель -->
                 <StackPanel Margin="0,0,12,0">
                     <TextBlock Text="Ссылка на видео" Margin="0,0,0,6" Foreground="{StaticResource Brush.Muted}"/>
                     <DockPanel>
@@ -45,6 +48,7 @@
                     </Border>
                 </StackPanel>
 
+                <!-- Правая панель -->
                 <StackPanel Grid.Column="1">
                     <TextBlock Text="Фильтры" Foreground="{StaticResource Brush.Muted}"/>
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,6">
@@ -106,6 +110,7 @@
             </Grid>
         </Border>
 
+        <!-- Статус -->
         <TextBlock Grid.Row="3" x:Name="StatusText" Foreground="{StaticResource Brush.Muted}" Text="Готово" />
     </Grid>
 </Window>
