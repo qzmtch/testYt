@@ -1,0 +1,115 @@
+<Window x:Class="YtDlpGui.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="yt-dlp GUI" Width="980" Height="680" WindowStartupLocation="CenterScreen">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Титул -->
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Text="yt-dlp GUI" FontWeight="SemiBold" FontSize="18"/>
+            <TextBlock Text=" · NET Framework 4.7.2" Margin="8,0,0,0" Foreground="{StaticResource Brush.Muted}"/>
+        </StackPanel>
+
+        <Border Grid.Row="2" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Левая панель: информация -->
+                <StackPanel Margin="0,0,12,0">
+                    <TextBlock Text="Ссылка на видео" Margin="0,0,0,6" Foreground="{StaticResource Brush.Muted}"/>
+                    <DockPanel>
+                        <TextBox x:Name="UrlText" MinWidth="240" MinHeight="32"/>
+                        <Button x:Name="FetchBtn" Content="Получить" Click="FetchBtn_Click"/>
+                    </DockPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBlock Text="yt-dlp:" Foreground="{StaticResource Brush.Muted}" VerticalAlignment="Center"/>
+                        <TextBox x:Name="YtDlpPathText" Width="260" Margin="6,0,0,0" ToolTip="Путь к yt-dlp.exe (если не в PATH)"/>
+                        <Button Content="Обзор" Click="BrowseYtDlp_Click"/>
+                    </StackPanel>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding WebpageUrl}" Foreground="{StaticResource Brush.Muted}" TextWrapping="Wrap"/>
+                            <Image x:Name="ThumbImage" Height="160" Stretch="UniformToFill" Margin="0,10,0,0"/>
+                            <TextBlock Text="{Binding Description}" Foreground="{StaticResource Brush.Muted}" TextWrapping="Wrap" Margin="0,10,0,0" MaxHeight="80"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Правая панель: выбор форматов -->
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Фильтры" Foreground="{StaticResource Brush.Muted}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,6">
+                        <RadioButton x:Name="FilterAll" Content="Все" IsChecked="True" Checked="FilterChanged"/>
+                        <RadioButton x:Name="FilterVideo" Content="Видео" Margin="12,0,0,0" Checked="FilterChanged"/>
+                        <RadioButton x:Name="FilterAudio" Content="Аудио" Margin="12,0,0,0" Checked="FilterChanged"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <ComboBox x:Name="ExtCombo" Width="120" SelectionChanged="FilterChanged">
+                            <ComboBoxItem Content="Все" IsSelected="True"/>
+                        </ComboBox>
+                        <ComboBox x:Name="ProtoCombo" Width="140" SelectionChanged="FilterChanged">
+                            <ComboBoxItem Content="Любой протокол" IsSelected="True"/>
+                            <ComboBoxItem Content="https"/>
+                            <ComboBoxItem Content="m3u8_native"/>
+                            <ComboBoxItem Content="http"/>
+                            <ComboBoxItem Content="dash"/>
+                        </ComboBox>
+                        <ComboBox x:Name="ResCombo" Width="150" SelectionChanged="FilterChanged">
+                            <ComboBoxItem Content="Любое разрешение" IsSelected="True"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <TextBlock Text="Форматы (из JSON)" Foreground="{StaticResource Brush.Muted}" />
+                    <ComboBox x:Name="FormatsCombo" Height="34" DisplayMemberPath="Display" SelectionChanged="FormatsCombo_SelectionChanged"/>
+
+                    <CheckBox x:Name="AutoMergeCheck" Content="Авто: видео + лучшая аудиодорожка" Margin="0,10,0,0" IsChecked="True"/>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Субтитры" Foreground="{StaticResource Brush.Muted}"/>
+                            <ItemsControl x:Name="SubsItems">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Content="{Binding}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Папка сохранения" Foreground="{StaticResource Brush.Muted}" Margin="0,10,0,6"/>
+                    <DockPanel>
+                        <TextBox x:Name="OutputFolderText" MinHeight="32"/>
+                        <Button Content="Обзор" Click="BrowseOutput_Click"/>
+                    </DockPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button x:Name="DownloadBtn" Content="Скачать" Click="DownloadBtn_Click"/>
+                        <Button x:Name="CancelBtn" Content="Отмена" Click="CancelBtn_Click" IsEnabled="False"/>
+                        <Button Content="Открыть папку" Click="OpenFolder_Click"/>
+                        <Button Content="Скопировать команду" Click="CopyCmd_Click"/>
+                    </StackPanel>
+
+                    <ProgressBar x:Name="ProgressBar" Margin="0,10,0,0" Minimum="0" Maximum="100" Height="8"/>
+                    <TextBlock x:Name="ProgressText" Foreground="{StaticResource Brush.Muted}" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Статус -->
+        <TextBlock Grid.Row="3" x:Name="StatusText" Foreground="{StaticResource Brush.Muted}" Text="Готово" />
+    </Grid>
+</Window>
