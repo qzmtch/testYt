@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace YtDlpGui.Wpf.Models
@@ -12,7 +11,6 @@ namespace YtDlpGui.Wpf.Models
         public string thumbnail { get; set; }
         public List<Format> formats { get; set; }
         public Dictionary<string, List<Subtitle>> subtitles { get; set; }
-        // Могут быть и другие поля — не обязательны для нашей логики
     }
 
     public class Format
@@ -21,18 +19,18 @@ namespace YtDlpGui.Wpf.Models
         public string ext { get; set; }
         public int? width { get; set; }
         public int? height { get; set; }
-        public double? tbr { get; set; }      // общий битрейт
+        public double? tbr { get; set; }
         public double? fps { get; set; }
         public string format_note { get; set; }
         public string container { get; set; }
         public string vcodec { get; set; }
         public string acodec { get; set; }
         public string protocol { get; set; }
-        public string audio_ext { get; set; }  // "none" если нет
-        public string video_ext { get; set; }  // "none" если нет
-        public string resolution { get; set; } // строка, иногда вида "1280x720" или "audio only"
+        public string audio_ext { get; set; }
+        public string video_ext { get; set; }
+        public string resolution { get; set; }
         public string url { get; set; }
-        public string format { get; set; }     // человекочитаемая строка
+        public string format { get; set; }
     }
 
     public class Subtitle
@@ -41,7 +39,6 @@ namespace YtDlpGui.Wpf.Models
         public string url { get; set; }
     }
 
-    // Упрощённый VM для вывода в комбобокс
     public class FormatDisplay
     {
         public Format Model { get; set; }
