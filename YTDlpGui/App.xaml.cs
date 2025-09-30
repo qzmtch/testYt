@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace YTDlpGui
+namespace YtDlpGui
 {
     public partial class App : Application
     {
