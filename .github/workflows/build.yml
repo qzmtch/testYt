@@ -1,4 +1,4 @@
-name: Build WPF (.NET Framework 4.7.2) without sln
+name: Build
 
 on:
   workflow_dispatch:
