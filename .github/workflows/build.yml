@@ -1,10 +1,6 @@
-name: Build (WPF .NET Framework 4.7.2)
+name: Build WPF (.NET Framework 4.7.2) without sln
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -21,11 +17,11 @@ jobs:
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
 
-      - name: Restore (if any)
-        run: nuget restore YtDlpGui.Wpf.sln
+      - name: Restore (no packages, skip if none)
+        run: echo "No packages to restore"
 
-      - name: Build Release
-        run: msbuild YtDlpGui.Wpf.sln /t:Build /p:Configuration=Release /p:Platform="Any CPU" /m
+      - name: Build Release (csproj directly)
+        run: msbuild YtDlpGui.Wpf\YtDlpGui.Wpf.csproj /t:Build /p:Configuration=Release /p:Platform="Any CPU" /m
 
       - name: Collect Artifacts
         shell: pwsh
