@@ -21,7 +21,7 @@ jobs:
         run: echo "No packages to restore"
 
       - name: Build Release (csproj directly)
-        run: msbuild YtDlpGui.Wpf\YtDlpGui.Wpf.csproj /t:Build /p:Configuration=Release /p:Platform="Any CPU" /m
+        run: msbuild YtDlpGui.Wpf\YtDlpGui.Wpf.csproj /t:Build /p:Configuration=Release /m
 
       - name: Collect Artifacts
         shell: pwsh
