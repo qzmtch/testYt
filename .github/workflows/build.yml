@@ -1,0 +1,40 @@
+name: Build (WPF .NET Framework 4.7.2)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore (if any)
+        run: nuget restore YtDlpGui.Wpf.sln
+
+      - name: Build Release
+        run: msbuild YtDlpGui.Wpf.sln /t:Build /p:Configuration=Release /p:Platform="Any CPU" /m
+
+      - name: Collect Artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item -Recurse -Force "YtDlpGui.Wpf\bin\Release\*" "artifacts\"
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: YtDlpGui.Wpf
+          path: artifacts
