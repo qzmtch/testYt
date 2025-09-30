@@ -34,8 +34,7 @@ namespace YtDlpGui.Wpf
             InitializeComponent();
 
             AutoMergeCheck.IsChecked = true;
-            OutputFolderText.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Downloads");
-            try { Directory.CreateDirectory(OutputFolderText.Text); } catch { }
+OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
             // включаем UI после полной загрузки окна
             this.Loaded += (_, __) => { _uiReady = true; };
