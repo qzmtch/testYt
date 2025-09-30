@@ -75,6 +75,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="App.config" />
   </ItemGroup>
+<ItemGroup>
+  <Page Include="Dialogs\CrashDialog.xaml">
+    <Generator>MSBuild:Compile</Generator>
+    <SubType>Designer</SubType>
+  </Page>
+  <Compile Include="Dialogs\CrashDialog.xaml.cs">
+    <DependentUpon>CrashDialog.xaml</DependentUpon>
+    <SubType>Code</SubType>
+  </Compile>
+</ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
