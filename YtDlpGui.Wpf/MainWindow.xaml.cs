@@ -37,7 +37,7 @@ namespace YtDlpGui.Wpf
             OutputFolderText.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Downloads");
             try { Directory.CreateDirectory(OutputFolderText.Text); } catch { }
 
-            // Включаем UI после полной загрузки окна
+            // включаем UI после полной загрузки окна
             this.Loaded += (_, __) => { _uiReady = true; };
         }
 
@@ -234,7 +234,7 @@ namespace YtDlpGui.Wpf
 
         private void FormatsCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // можно отобразить предпросмотр выражения формата, если нужно
+            // no-op
         }
 
         private string BuildFormatSelector()
@@ -244,7 +244,7 @@ namespace YtDlpGui.Wpf
 
             var f = sel.Model;
 
-            // Если выбран видео-only и включён авто-слияние — bestvideo[..] + bestaudio
+            // видео-only + авто-слияние
             if (AutoMergeCheck.IsChecked == true &&
                 !string.Equals(f.video_ext, "none", StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(f.audio_ext, "none", StringComparison.OrdinalIgnoreCase))
@@ -259,7 +259,7 @@ namespace YtDlpGui.Wpf
                 return $"bestvideo+bestaudio/best";
             }
 
-            // Аудио-only
+            // аудио-only
             if (AutoMergeCheck.IsChecked == true &&
                 string.Equals(f.video_ext, "none", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(f.audio_ext, "none", StringComparison.OrdinalIgnoreCase))
@@ -267,7 +267,6 @@ namespace YtDlpGui.Wpf
                 return f.format_id; // или "bestaudio"
             }
 
-            // По умолчанию — точный format_id
             return f.format_id;
         }
 
@@ -401,6 +400,17 @@ namespace YtDlpGui.Wpf
             StatusText.Text = "Команда скопирована.";
         }
 
+        private void BrowseYtDlp_Click(object sender, RoutedEventArgs e)
+        {
+            var ofd = new OpenFileDialog
+            {
+                Filter = "yt-dlp|yt-dlp.exe|Все файлы|*.*",
+                Title = "Укажите yt-dlp.exe"
+            };
+            if (ofd.ShowDialog() == true)
+                YtDlpPathText.Text = ofd.FileName;
+        }
+
         private static string QuoteIfNeeded(string t)
             => string.IsNullOrEmpty(t) ? t
                : (t.Contains(" ") || t.Contains("+") || t.Contains("[") || t.Contains("]") ? $"\"{t}\"" : t);
@@ -410,7 +420,6 @@ namespace YtDlpGui.Wpf
             var res = new List<string>();
             if (SubsItems == null) return res;
 
-            // Ищем все чекбоксы в визуальном дереве ItemsControl
             foreach (var cb in FindVisualChildren<CheckBox>(SubsItems))
             {
                 if (cb.IsChecked == true && cb.Content != null)
