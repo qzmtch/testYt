@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Цвета Dark -->
+  <Color x:Key="PrimaryColor">#FF9F86FF</Color>
+  <Color x:Key="AccentColor">#FF41E1A0</Color>
+  <Color x:Key="BgColor">#FF0F1115</Color>
+  <Color x:Key="PanelColor">#FF171A21</Color>
+  <Color x:Key="TextColor">#FFF5F7FA</Color>
+  <Color x:Key="SubTextColor">#99F5F7FA</Color>
+  <Color x:Key="BorderColor">#332C313A</Color>
+
+  <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+  <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+  <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BgColor}" />
+  <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}" />
+  <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
+  <SolidColorBrush x:Key="SubTextBrush" Color="{StaticResource SubTextColor}" />
+  <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+</ResourceDictionary>
