@@ -127,8 +127,11 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"/>
 
                         <ContentPresenter Grid.Column="0" Margin="10,2,6,2"
-                                          HorizontalAlignment="Left" VerticalAlignment="Center"
-                                          RecognizesAccessKey="True"/>
+                  Content="{TemplateBinding SelectionBoxItem}"
+                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                  HorizontalAlignment="Left" VerticalAlignment="Center"
+                  RecognizesAccessKey="True"/>
 
                         <ToggleButton Grid.Column="1" Template="{StaticResource ComboToggle}"
                                       IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
