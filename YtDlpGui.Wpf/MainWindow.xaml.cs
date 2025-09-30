@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using YtDlpGui.Wpf.Models;
 using YtDlpGui.Wpf.Services;
 
@@ -29,7 +28,6 @@ namespace YtDlpGui.Wpf
         public MainWindow()
         {
             InitializeComponent();
-            // начальные значения
             AutoMergeCheck.IsChecked = true;
             OutputFolderText.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Downloads");
             Directory.CreateDirectory(OutputFolderText.Text);
@@ -59,12 +57,7 @@ namespace YtDlpGui.Wpf
                 TitleText = _info.title;
                 WebpageUrl = _info.webpage_url;
                 Description = _info.description;
-                DataContext = new
-                {
-                    Title = TitleText,
-                    WebpageUrl = WebpageUrl,
-                    Description = Description
-                };
+                DataContext = new { Title = TitleText, WebpageUrl = WebpageUrl, Description = Description };
                 await LoadThumbnailAsync(_info.thumbnail);
 
                 _allFormats = _info.formats ?? new List<Format>();
@@ -107,19 +100,17 @@ namespace YtDlpGui.Wpf
                     ThumbImage.Source = bmp;
                 }
             }
-            catch { /* игнор превью */ }
+            catch { }
         }
 
         private void BuildFilters()
         {
-            // ext
             var exts = _allFormats.Select(f => f.ext).Where(s => !string.IsNullOrWhiteSpace(s))
                                   .Distinct().OrderBy(s => s).ToList();
             ExtCombo.Items.Clear();
             ExtCombo.Items.Add(new System.Windows.Controls.ComboBoxItem { Content = "Все", IsSelected = true });
             foreach (var e in exts) ExtCombo.Items.Add(e);
 
-            // resolution (по height/строке)
             var res = _allFormats.Select(f =>
                          f.height.HasValue ? $"{f.height.Value}p" :
                          !string.IsNullOrWhiteSpace(f.resolution) ? f.resolution : null)
@@ -131,18 +122,11 @@ namespace YtDlpGui.Wpf
             ResCombo.Items.Clear();
             ResCombo.Items.Add(new System.Windows.Controls.ComboBoxItem { Content = "Любое разрешение", IsSelected = true });
             foreach (var r in res) ResCombo.Items.Add(r);
-
-            // протоколы уже зашиты в XAML — можно оставить так или заполнить динамически
         }
 
         private static int ParseResOrder(string s)
         {
-            // пытаемся распознать "1080p"
-            if (s != null && s.EndsWith("p"))
-            {
-                if (int.TryParse(s.TrimEnd('p'), out var p)) return p;
-            }
-            // "audio only" или другие — в конец
+            if (s != null && s.EndsWith("p") && int.TryParse(s.TrimEnd('p'), out var p)) return p;
             return -1;
         }
 
@@ -156,21 +140,17 @@ namespace YtDlpGui.Wpf
 
             var q = _allFormats.AsEnumerable();
 
-            // Тип
             if (FilterVideo.IsChecked == true)
                 q = q.Where(f => f.video_ext != "none");
             else if (FilterAudio.IsChecked == true)
-                q = q.Where(f => f.video_ext == "none"); // аудио only
+                q = q.Where(f => f.video_ext == "none");
 
-            // Ext
             if (!string.IsNullOrWhiteSpace(ext) && ext != "Все")
                 q = q.Where(f => string.Equals(f.ext, ext, StringComparison.OrdinalIgnoreCase));
 
-            // Protocol
             if (!string.IsNullOrWhiteSpace(proto) && proto != "Любой протокол")
                 q = q.Where(f => string.Equals(f.protocol, proto, StringComparison.OrdinalIgnoreCase));
 
-            // Resolution
             if (!string.IsNullOrWhiteSpace(res) && res != "Любое разрешение")
             {
                 q = q.Where(f =>
@@ -205,7 +185,6 @@ namespace YtDlpGui.Wpf
         {
             SubsItems.ItemsSource = null;
             if (_info?.subtitles == null || _info.subtitles.Count == 0) return;
-            // ключи словаря — языки
             var langs = _info.subtitles.Keys.ToList();
             SubsItems.ItemsSource = langs;
         }
@@ -214,7 +193,6 @@ namespace YtDlpGui.Wpf
 
         private void FormatsCombo_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            // можно показать предпросмотр выбора/формат выражения
         }
 
         private string BuildFormatSelector()
@@ -224,29 +202,24 @@ namespace YtDlpGui.Wpf
 
             var f = sel.Model;
 
-            // Если выбран видео-only и стоит авто-слияние — выбрать bestaudio
             if (AutoMergeCheck.IsChecked == true && f.video_ext != "none" && f.audio_ext == "none")
             {
-                // ограничим по высоте (если известно)
                 var height = f.height ?? ParseHeightFromRes(f.resolution);
                 if (height > 0)
                     return $"bestvideo[height={height}][ext={f.ext}]+bestaudio/best";
                 return $"bestvideo[ext={f.ext}]+bestaudio/best";
             }
 
-            // Если аудио-only и авто — просто этот аудио или bestaudio
             if (AutoMergeCheck.IsChecked == true && f.video_ext == "none" && f.audio_ext != "none")
             {
-                return f.format_id; // или "bestaudio"
+                return f.format_id;
             }
 
-            // В остальных случаях используем точный format_id
             return f.format_id;
         }
 
         private static int ParseHeightFromRes(string res)
         {
-            // "1280x720" -> 720, "audio only" -> 0, "720p" -> 720
             if (string.IsNullOrWhiteSpace(res)) return 0;
             if (res.EndsWith("p") && int.TryParse(res.TrimEnd('p'), out var p)) return p;
             var parts = res.Split('x');
@@ -275,23 +248,9 @@ namespace YtDlpGui.Wpf
             Directory.CreateDirectory(outDir);
 
             string selector = BuildFormatSelector();
-
-            // Шаблон имени
             string template = Path.Combine(outDir, "%(title)s [%(id)s].%(ext)s");
 
-            // Субтитры
-            var langs = SubsItems.ItemsSource as IEnumerable<string>;
-            var checkedLangs = new List<string>();
-            if (langs != null)
-            {
-                foreach (var item in SubsItems.Items)
-                {
-                    var cont = (System.Windows.Controls.ContentPresenter)SubsItems.ItemContainerGenerator.ContainerFromItem(item);
-                    var cb = FindVisualChild<System.Windows.Controls.CheckBox>(cont);
-                    if (cb != null && cb.IsChecked == true)
-                        checkedLangs.Add(cb.Content?.ToString());
-                }
-            }
+            var checkedLangs = GetCheckedSubLangs();
             bool writeSubs = checkedLangs.Count > 0;
             string subLangs = string.Join(",", checkedLangs);
 
@@ -308,10 +267,7 @@ namespace YtDlpGui.Wpf
                 {
                     var prog = new Progress<(double p, string line)>(t =>
                     {
-                        if (!double.IsNaN(t.p))
-                        {
-                            ProgressBar.Value = t.p;
-                        }
+                        if (!double.IsNaN(t.p)) ProgressBar.Value = t.p;
                         ProgressText.Text = t.line;
                     });
 
@@ -344,13 +300,23 @@ namespace YtDlpGui.Wpf
             }
         }
 
+        private List<string> GetCheckedSubLangs()
+        {
+            var res = new List<string>();
+            foreach (var item in SubsItems.Items)
+            {
+                var cp = (System.Windows.Controls.ContentPresenter)SubsItems.ItemContainerGenerator.ContainerFromItem(item);
+                if (cp == null) continue;
+                var cb = FindVisualChild<System.Windows.Controls.CheckBox>(cp);
+                if (cb != null && cb.IsChecked == true) res.Add(cb.Content?.ToString());
+            }
+            return res;
+        }
+
         private static string QuoteIfNeeded(string t)
             => (t.Contains(" ") || t.Contains("+") || t.Contains("[") || t.Contains("]")) ? $"\"{t}\"" : t;
 
-        private void CancelBtn_Click(object sender, RoutedEventArgs e)
-        {
-            _cts?.Cancel();
-        }
+        private void CancelBtn_Click(object sender, RoutedEventArgs e) => _cts?.Cancel();
 
         private void BrowseOutput_Click(object sender, RoutedEventArgs e)
         {
@@ -376,19 +342,7 @@ namespace YtDlpGui.Wpf
             var outDir = string.IsNullOrWhiteSpace(OutputFolderText.Text) ? Environment.CurrentDirectory : OutputFolderText.Text.Trim();
             string template = Path.Combine(outDir, "%(title)s [%(id)s].%(ext)s");
 
-            // субтитры
-            var langs = SubsItems.ItemsSource as IEnumerable<string>;
-            var checkedLangs = new List<string>();
-            if (langs != null)
-            {
-                foreach (var item in SubsItems.Items)
-                {
-                    var cont = (System.Windows.Controls.ContentPresenter)SubsItems.ItemContainerGenerator.ContainerFromItem(item);
-                    var cb = FindVisualChild<System.Windows.Controls.CheckBox>(cont);
-                    if (cb != null && cb.IsChecked == true)
-                        checkedLangs.Add(cb.Content?.ToString());
-                }
-            }
+            var checkedLangs = GetCheckedSubLangs();
             bool writeSubs = checkedLangs.Count > 0;
             string subLangs = string.Join(",", checkedLangs);
 
@@ -416,15 +370,14 @@ namespace YtDlpGui.Wpf
                 YtDlpPathText.Text = ofd.FileName;
         }
 
-        // Поиск чекбоксов внутри ItemsControl
-        private static TChild FindVisualChild<TChild>(DependencyObject obj) where TChild : DependencyObject
+        private static T FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
         {
             if (obj == null) return null;
             for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(obj); i++)
             {
                 var child = System.Windows.Media.VisualTreeHelper.GetChild(obj, i);
-                if (child is TChild t) return t;
-                var res = FindVisualChild<TChild>(child);
+                if (child is T t) return t;
+                var res = FindVisualChild<T>(child);
                 if (res != null) return res;
             }
             return null;
