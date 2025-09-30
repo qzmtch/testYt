@@ -34,11 +34,11 @@
         <Setter Property="TextWrapping" Value="NoWrap"/>
     </Style>
 
+    <!-- Карточка (убран Foreground — у Border его нет) -->
     <Style x:Key="Card" TargetType="Border">
         <Setter Property="CornerRadius" Value="10"/>
         <Setter Property="Background" Value="{StaticResource Brush.Card}"/>
         <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
-        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="14"/>
         <Setter Property="Margin" Value="0,10,0,0"/>
@@ -182,7 +182,7 @@
         </Setter>
     </Style>
 
-    <!-- Радиокнопка (тёмная) -->
+    <!-- Радиокнопка -->
     <Style TargetType="RadioButton">
         <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -210,7 +210,7 @@
         </Setter>
     </Style>
 
-    <!-- Чекбокс (тёмный) -->
+    <!-- Чекбокс -->
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
