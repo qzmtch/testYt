@@ -103,7 +103,7 @@
         </Setter>
     </Style>
 
-    <!-- Кнопка-оверлей для клика по всей области ComboBox -->
+    <!-- ToggleButton-оверлей для клика по всей области ComboBox -->
     <ControlTemplate x:Key="ComboToggleFull" TargetType="{x:Type ToggleButton}">
         <Border Background="Transparent">
             <Grid>
@@ -156,7 +156,7 @@
                                AllowsTransparency="True" Focusable="False" StaysOpen="False">
                             <Border CornerRadius="3" Background="{StaticResource Brush.Card}"
                                     BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
-                                    MinWidth="{Binding PlacementTarget.ActualWidth, RelativeSource={RelativeSource AncestorType=Popup}}">
+                                    Width="{Binding PlacementTarget.ActualWidth, RelativeSource={RelativeSource AncestorType=Popup}}">
                                 <ScrollViewer Style="{x:Null}">
                                     <ItemsPresenter/>
                                 </ScrollViewer>
@@ -300,36 +300,10 @@
         </Setter>
     </Style>
 
-    <!-- ScrollBar -->
-    <Style TargetType="ScrollBar">
-        <Setter Property="Width" Value="10"/>
-        <Setter Property="Background" Value="#22000000"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ScrollBar">
-                    <Grid Background="{TemplateBinding Background}">
-                        <Track x:Name="PART_Track" IsDirectionReversed="True">
-                            <Track.DecreaseRepeatButton>
-                                <RepeatButton Background="Transparent" BorderThickness="0" />
-                            </Track.DecreaseRepeatButton>
-                            <Track.Thumb>
-                                <Thumb Background="#666" BorderBrush="#777" BorderThickness="1" />
-                            </Track.Thumb>
-                            <Track.IncreaseRepeatButton>
-                                <RepeatButton Background="Transparent" BorderThickness="0" />
-                            </Track.IncreaseRepeatButton>
-                        </Track>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
     <!-- ToolTip -->
     <Style TargetType="{x:Type FrameworkElement}">
         <Setter Property="ToolTipService.ShowDuration" Value="30000"/>
     </Style>
-
     <Style TargetType="ToolTip">
         <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
         <Setter Property="Background" Value="{StaticResource Brush.Card}"/>
@@ -347,6 +321,83 @@
                         <ContentPresenter Margin="{TemplateBinding Padding}"
                                           RecognizesAccessKey="True"/>
                     </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Expander header: стрелка + текст без квадратов -->
+    <ControlTemplate x:Key="ExpanderHeaderToggle" TargetType="ToggleButton">
+        <Border Background="Transparent" Padding="6,6">
+            <DockPanel LastChildFill="True">
+                <Path x:Name="Arrow" Width="10" Height="10" Margin="0,0,8,0"
+                      Fill="{StaticResource Brush.Muted}"
+                      Data="M 0 0 L 6 0 L 3 4 Z"
+                      VerticalAlignment="Center"
+                      RenderTransformOrigin="0.5,0.5">
+                    <Path.RenderTransform>
+                        <RotateTransform Angle="0"/>
+                    </Path.RenderTransform>
+                </Path>
+                <ContentPresenter VerticalAlignment="Center" RecognizesAccessKey="True"/>
+            </DockPanel>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Arrow" Property="RenderTransform">
+                    <Setter.Value>
+                        <RotateTransform Angle="90"/>
+                    </Setter.Value>
+                </Setter>
+                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Brush.Text}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Brush.Text}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.5"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Expander -->
+    <Style TargetType="Expander">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Expander">
+                    <Border CornerRadius="4"
+                            Background="{StaticResource Brush.Card}"
+                            BorderBrush="{StaticResource Brush.Border}"
+                            BorderThickness="1"
+                            SnapsToDevicePixels="True"
+                            ClipToBounds="True">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <ToggleButton x:Name="HeaderSite"
+                                          Template="{StaticResource ExpanderHeaderToggle}"
+                                          Content="{TemplateBinding Header}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Focusable="False"
+                                          Background="Transparent"/>
+
+                            <ContentPresenter x:Name="ExpandSite"
+                                              Grid.Row="1"
+                                              Margin="0,6,0,6"
+                                              Visibility="Collapsed"
+                                              Focusable="False"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
