@@ -18,17 +18,25 @@ namespace YtDlpGui.Wpf.Services
                 if (!File.Exists(FilePath))
                 {
                     var def = CreateDefault();
-                    await SaveAsync(def);
+                    await SaveAsync(def).ConfigureAwait(false);
                     return def;
                 }
-                var json = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+
+                // Читаем асинхронно через StreamReader (совместимо с .NET Framework)
+                string json;
+                using (var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true))
+                using (var sr = new StreamReader(fs, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
+                {
+                    json = await sr.ReadToEndAsync().ConfigureAwait(false);
+                }
+
                 var ser = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
                 var store = ser.Deserialize<PresetStore>(json) ?? new PresetStore();
                 if (store.Items == null) store.Items = new System.Collections.Generic.List<Preset>();
                 if (store.Items.Count == 0)
                 {
                     var def = CreateDefault();
-                    await SaveAsync(def);
+                    await SaveAsync(def).ConfigureAwait(false);
                     return def;
                 }
                 return store;
@@ -36,7 +44,7 @@ namespace YtDlpGui.Wpf.Services
             catch
             {
                 var def = CreateDefault();
-                await SaveAsync(def);
+                await SaveAsync(def).ConfigureAwait(false);
                 return def;
             }
         }
@@ -45,13 +53,20 @@ namespace YtDlpGui.Wpf.Services
         {
             var ser = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
             var json = ser.Serialize(store);
-            await File.WriteAllTextAsync(FilePath, json, new UTF8Encoding(false));
+
+            // Записываем асинхронно через StreamWriter
+            using (var fs = new FileStream(FilePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+            using (var sw = new StreamWriter(fs, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)))
+            {
+                await sw.WriteAsync(json).ConfigureAwait(false);
+            }
         }
 
         public void MarkDefault(PresetStore store, string name)
         {
             if (store?.Items == null) return;
-            foreach (var p in store.Items) p.IsDefault = string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase);
+            foreach (var p in store.Items)
+                p.IsDefault = string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase);
         }
 
         public static PresetStore CreateDefault()
