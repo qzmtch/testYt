@@ -90,50 +90,74 @@ namespace YtDlpGui.Wpf.Services
         }
 
         private async Task<string> RunAndReadStdOutAsync(string file, string args, CancellationToken ct)
+{
+    var psi = new ProcessStartInfo(file, args)
+    {
+        UseShellExecute = false,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        RedirectStandardInput = true,
+        CreateNoWindow = true,
+        StandardOutputEncoding = Encoding.UTF8,
+        StandardErrorEncoding = Encoding.UTF8,
+    };
+
+    using (var p = new Process { StartInfo = psi, EnableRaisingEvents = true })
+    using (var job = new ProcessJob())
+    {
+        var tcsExit = new TaskCompletionSource<int>();
+        bool cancelRequested = false;
+
+        p.Exited += (_, __) => { try { tcsExit.TrySetResult(p.ExitCode); } catch { } };
+
+        p.Start();
+        try { job.Assign(p); } catch { }
+
+        var stdoutTask = p.StandardOutput.ReadToEndAsync();
+        var stderrTask = p.StandardError.ReadToEndAsync();
+
+        using (ct.Register(() =>
         {
-            var psi = new ProcessStartInfo(file, args)
+            cancelRequested = true;
+
+            // 1) мягко — посылаем 'q' и закрываем stdin
+            try { if (!p.HasExited) { p.StandardInput.WriteLine("q"); p.StandardInput.Flush(); } } catch { }
+            try { if (!p.HasExited) p.StandardInput.Close(); } catch { }
+
+            // 2) даём время yt-dlp завершиться корректно
+            Task.Run(async () =>
             {
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
-            };
-
-            using (var p = new Process { StartInfo = psi, EnableRaisingEvents = true })
-            using (var job = new ProcessJob())
-            {
-                var tcsExit = new TaskCompletionSource<int>();
-                p.Exited += (_, __) => { try { tcsExit.TrySetResult(p.ExitCode); } catch { } };
-
-                p.Start();
-                try { job.Assign(p); } catch { }
-
-                var stdoutTask = p.StandardOutput.ReadToEndAsync();
-                var stderrTask = p.StandardError.ReadToEndAsync();
-
-                using (ct.Register(() =>
+                try
                 {
-                    try { if (!p.HasExited) { p.StandardInput.WriteLine("q"); p.StandardInput.Flush(); } } catch { }
-                    try { if (!p.HasExited) job.Terminate(1); } catch { }
-                }))
-                {
-                    try { await tcsExit.Task.ConfigureAwait(false); }
-                    catch (TaskCanceledException) { throw new OperationCanceledException(ct); }
+                    var exited = p.WaitForExit(2000);
+                    if (!exited)
+                    {
+                        // 3) если не вышел — завершаем дерево
+                        try { job.Terminate(1); } catch { }
+                    }
                 }
+                catch { }
+            });
+        }))
+        {
+            int code = 0;
+            try { code = await tcsExit.Task.ConfigureAwait(false); }
+            catch (TaskCanceledException) { cancelRequested = true; }
 
-                string stdout = string.Empty, stderr = string.Empty;
-                try { stdout = await stdoutTask.ConfigureAwait(false); } catch { }
-                try { stderr = await stderrTask.ConfigureAwait(false); } catch { }
+            string stdout = string.Empty, stderr = string.Empty;
+            try { stdout = await stdoutTask.ConfigureAwait(false); } catch { }
+            try { stderr = await stderrTask.ConfigureAwait(false); } catch { }
 
-                if (p.ExitCode != 0 && string.IsNullOrWhiteSpace(stdout))
-                    throw new InvalidOperationException($"yt-dlp завершился с ошибкой {p.ExitCode}. STDERR: {stderr}");
+            if (cancelRequested)
+                throw new OperationCanceledException(ct);
 
-                return stdout;
-            }
+            if (code != 0 && string.IsNullOrWhiteSpace(stdout))
+                throw new InvalidOperationException($"yt-dlp завершился с ошибкой {code}. STDERR: {stderr}");
+
+            return stdout;
         }
+    }
+}
 
         private async Task<int> RunWithProgressAsync(string file, string args, IProgress<(double, string)> progress, CancellationToken ct)
         {
