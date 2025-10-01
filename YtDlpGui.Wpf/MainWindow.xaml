@@ -262,6 +262,19 @@
                             </StackPanel>
                         </Expander>
 
+                        <!-- Субтитры -->
+                        <Expander Header="Субтитры" IsExpanded="False" Margin="0,10,0,0">
+                            <Border Style="{StaticResource Card}">
+                                <ItemsControl x:Name="SubsItems">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Content="{Binding}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+                        </Expander>
+
                     </StackPanel>
                 </Grid>
             </Border>
