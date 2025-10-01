@@ -36,8 +36,6 @@ namespace YtDlpGui.Wpf
         public MainWindow()
         {
             InitializeComponent();
-
-            // дефолтная папка — рабочий стол (ничего не создаём)
             OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
             this.Loaded += async (_, __) =>
@@ -46,6 +44,8 @@ namespace YtDlpGui.Wpf
                 _uiReady = true;
             };
         }
+
+        // ---- Пресеты ----
 
         private async Task LoadPresetsAsync()
         {
@@ -169,6 +169,16 @@ namespace YtDlpGui.Wpf
             }
         }
 
+        private void SortPresetCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_uiReady) return;
+            var content = (SortPresetCombo.SelectedItem as ComboBoxItem)?.Content as string;
+            if (string.IsNullOrWhiteSpace(content) || content == "(нет)") { SortText.Text = ""; return; }
+            SortText.Text = content;
+        }
+
+        // ---- Получение инфо ----
+
         private async void FetchBtn_Click(object sender, RoutedEventArgs e)
         {
             var url = UrlText.Text?.Trim();
@@ -242,6 +252,8 @@ namespace YtDlpGui.Wpf
             catch { }
         }
 
+        // ---- Фильтры/форматы ----
+
         private void BuildFilters()
         {
             var exts = _allFormats.Select(f => f.ext).Where(s => !string.IsNullOrWhiteSpace(s))
@@ -283,9 +295,6 @@ namespace YtDlpGui.Wpf
         {
             if (!_uiReady) return;
             if (_allFormats == null) return;
-            if (ExtCombo == null || ProtoCombo == null || ResCombo == null ||
-                FilterVideo == null || FilterAudio == null || FormatsCombo == null)
-                return;
 
             string ext = GetComboSelectedText(ExtCombo);
             string proto = GetComboSelectedText(ProtoCombo);
@@ -318,9 +327,7 @@ namespace YtDlpGui.Wpf
             }).ToList();
 
             _currentDisplay = list;
-            FormatsCombo.ItemsSource = _currentDisplay;
-            if (_currentDisplay.Count > 0)
-                FormatsCombo.SelectedIndex = 0;
+            FormatsList.ItemsSource = _currentDisplay;
         }
 
         private static string MakeDisplay(Format f)
@@ -337,47 +344,40 @@ namespace YtDlpGui.Wpf
             return $"{f.format_id}  [{kind}]  {f.ext}  {res} {fps}  {v}/{a}  {br}  ({proto})";
         }
 
-        private void BuildSubtitles()
-        {
-            SubsItems.ItemsSource = null;
-            if (_info?.subtitles == null || _info.subtitles.Count == 0) return;
-            var langs = _info.subtitles.Keys.ToList();
-            SubsItems.ItemsSource = langs;
-        }
-
         private void FilterChanged(object sender, RoutedEventArgs e)
         {
             if (!_uiReady) return;
             ApplyFilters();
         }
 
-        private void FormatsCombo_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
+        // ---- Построение селектора ----
 
-        private string BuildFormatSelector()
+        private string BuildFormatSelectorFromSelection(out bool useCommaTemplate)
         {
-            var sel = FormatsCombo.SelectedItem as FormatDisplay;
-            if (sel == null) return "best"; // ничего не выбрано — пусть yt-dlp возьмёт best
-            return sel.Model.format_id;      // строго выбранный формат
+            useCommaTemplate = false;
+
+            var selected = FormatsList?.SelectedItems?.Cast<FormatDisplay>().ToList() ?? new List<FormatDisplay>();
+            if (selected.Count == 0) return "best";
+
+            string joiner;
+            if (SeparateCommaRadio.IsChecked == true)
+            {
+                joiner = ",";
+                useCommaTemplate = selected.Count > 1;
+            }
+            else
+            {
+                joiner = "+";
+            }
+
+            var ids = selected.Select(s => s.Model.format_id).Where(id => !string.IsNullOrWhiteSpace(id));
+            return string.Join(joiner, ids);
         }
 
-        private static int ParseHeightFromRes(string res)
-        {
-            if (string.IsNullOrWhiteSpace(res)) return 0;
-            if (res.EndsWith("p", StringComparison.OrdinalIgnoreCase) && int.TryParse(res.TrimEnd('p', 'P'), out var p)) return p;
-            var parts = res.Split('x');
-            if (parts.Length == 2 && int.TryParse(parts[1], out var h)) return h;
-            return 0;
-        }
+        // ---- Загрузка ----
 
         private async void DownloadBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (_info == null)
-            {
-                MessageBox.Show("Сначала получите информацию о видео.", "yt-dlp GUI", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            var sel = FormatsCombo.SelectedItem as FormatDisplay;
             var url = UrlText.Text?.Trim();
             if (string.IsNullOrWhiteSpace(url))
             {
@@ -389,13 +389,24 @@ namespace YtDlpGui.Wpf
             if (string.IsNullOrWhiteSpace(outDir)) outDir = Environment.CurrentDirectory;
             try { Directory.CreateDirectory(outDir); } catch { }
 
-            string selector = BuildFormatSelector();
-            string template = Path.Combine(outDir, "%(title)s [%(id)s].%(ext)s");
+            bool useCommaTemplate;
+            string selector = BuildFormatSelectorFromSelection(out useCommaTemplate);
 
+            // Шаблон: при ',' делаем уникальные имена по format_id
+            string template = useCommaTemplate
+                ? Path.Combine(outDir, "%(title)s.f%(format_id)s.%(ext)s")
+                : Path.Combine(outDir, "%(title)s [%(id)s].%(ext)s");
+
+            // Субтитры
             var checkedLangs = GetCheckedSubLangs();
             bool writeSubs = checkedLangs.Count > 0;
             string subLangs = string.Join(",", checkedLangs);
+
+            // Ключи
             bool ignoreCfg = IgnoreConfigCheck.IsChecked == true;
+            bool vMulti = VideoMultistreamsCheck.IsChecked == true;
+            bool aMulti = AudioMultistreamsCheck.IsChecked == true;
+            string sort = (SortText.Text ?? "").Trim();
 
             DownloadBtn.IsEnabled = false;
             CancelBtn.IsEnabled = true;
@@ -414,7 +425,19 @@ namespace YtDlpGui.Wpf
                         ProgressText.Text = t.line;
                     });
 
-                    int code = await _svc.DownloadAsync(url, QuoteIfNeeded(selector), template, subLangs, writeSubs, ignoreCfg, prog, _cts.Token);
+                    int code = await _svc.DownloadAsyncAdv(
+                        url,
+                        QuoteIfNeeded(selector),
+                        template,
+                        subLangs,
+                        writeSubs,
+                        ignoreCfg,
+                        sort,
+                        vMulti,
+                        aMulti,
+                        prog,
+                        _cts.Token);
+
                     if (code == 0)
                     {
                         StatusText.Text = "Готово.";
@@ -467,11 +490,20 @@ namespace YtDlpGui.Wpf
         private void CopyCmd_Click(object sender, RoutedEventArgs e)
         {
             var url = UrlText.Text?.Trim();
-            var outDir = string.IsNullOrWhiteSpace(OutputFolderText.Text) ? Environment.CurrentDirectory : OutputFolderText.Text.Trim();
-            string template = Path.Combine(outDir, "%(title)s [%(id)s].%(ext)s");
-            bool ignoreCfg = IgnoreConfigCheck.IsChecked == true;
+            if (string.IsNullOrWhiteSpace(url)) return;
 
-            string selector = BuildFormatSelector();
+            bool useCommaTemplate;
+            string selector = BuildFormatSelectorFromSelection(out useCommaTemplate);
+
+            var outDir = string.IsNullOrWhiteSpace(OutputFolderText.Text) ? Environment.CurrentDirectory : OutputFolderText.Text.Trim();
+            string template = useCommaTemplate
+                ? Path.Combine(outDir, "%(title)s.f%(format_id)s.%(ext)s")
+                : Path.Combine(outDir, "%(title)s [%(id)s].%(ext)s");
+
+            bool ignoreCfg = IgnoreConfigCheck.IsChecked == true;
+            bool vMulti = VideoMultistreamsCheck.IsChecked == true;
+            bool aMulti = AudioMultistreamsCheck.IsChecked == true;
+            string sort = (SortText.Text ?? "").Trim();
 
             var checkedLangs = GetCheckedSubLangs();
             bool writeSubs = checkedLangs.Count > 0;
@@ -481,6 +513,10 @@ namespace YtDlpGui.Wpf
             sb.Append("yt-dlp ");
             if (ignoreCfg) sb.Append("--ignore-config ");
             sb.Append("--newline --no-color ");
+            if (!string.IsNullOrWhiteSpace(sort)) sb.Append($"-S \"{sort}\" ");
+            if (vMulti) sb.Append("--video-multistreams ");
+            if (aMulti) sb.Append("--audio-multistreams ");
+
             sb.Append($"-f {QuoteIfNeeded(selector)} ");
             if (writeSubs && !string.IsNullOrWhiteSpace(subLangs))
                 sb.Append($"--write-subs --sub-langs \"{subLangs}\" ");
@@ -491,20 +527,9 @@ namespace YtDlpGui.Wpf
             StatusText.Text = "Команда скопирована.";
         }
 
-        private void BrowseYtDlp_Click(object sender, RoutedEventArgs e)
-        {
-            var ofd = new OpenFileDialog
-            {
-                Filter = "yt-dlp|yt-dlp.exe|Все файлы|*.*",
-                Title = "Укажите yt-dlp.exe"
-            };
-            if (ofd.ShowDialog() == true)
-                YtDlpPathText.Text = ofd.FileName;
-        }
-
         private static string QuoteIfNeeded(string t)
             => string.IsNullOrEmpty(t) ? t
-               : (t.Contains(" ") || t.Contains("+") || t.Contains("[") || t.Contains("]") ? $"\"{t}\"" : t);
+               : (t.Contains(" ") || t.Contains("+") || t.Contains(",") || t.Contains("[") || t.Contains("]")) ? $"\"{t}\"" : t;
 
         private List<string> GetCheckedSubLangs()
         {
