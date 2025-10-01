@@ -115,86 +115,88 @@
         </Border>
     </ControlTemplate>
 
-    <!-- Комбобокс: кликается по всей области; выпадушка по ширине -->
-    <Style TargetType="ComboBox">
-        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
-        <Setter Property="Background" Value="#1AFFFFFF"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="6,4"/>
-        <Setter Property="Margin" Value="0,0,6,0"/>
-        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="{x:Type ComboBox}">
-                    <Grid SnapsToDevicePixels="True">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition Width="34"/>
-                        </Grid.ColumnDefinitions>
+    <!-- Комбобокс: кликается по всей области; выпадушка равна ширине поля -->
+<Style TargetType="ComboBox">
+    <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+    <Setter Property="Background" Value="#1AFFFFFF"/>
+    <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Padding" Value="6,4"/>
+    <Setter Property="Margin" Value="0,0,6,0"/>
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="{x:Type ComboBox}">
+                <Grid SnapsToDevicePixels="True">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="34"/>
+                    </Grid.ColumnDefinitions>
 
-                        <Border x:Name="Bd" Grid.ColumnSpan="2" CornerRadius="3"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"/>
+                    <Border x:Name="Bd" Grid.ColumnSpan="2" CornerRadius="3"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"/>
 
-                        <ContentPresenter Grid.Column="0" Margin="10,2,6,2"
-                                          Content="{TemplateBinding SelectionBoxItem}"
-                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                          ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                                          HorizontalAlignment="Left" VerticalAlignment="Center"
-                                          RecognizesAccessKey="True"/>
+                    <ContentPresenter Grid.Column="0" Margin="10,2,6,2"
+                                      Content="{TemplateBinding SelectionBoxItem}"
+                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                      ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                      HorizontalAlignment="Left" VerticalAlignment="Center"
+                                      RecognizesAccessKey="True"/>
 
-                        <!-- Оверлей: кликается весь контрол -->
-                        <ToggleButton Grid.ColumnSpan="2" Focusable="False"
-                                      Background="Transparent"
-                                      Template="{StaticResource ComboToggleFull}"
-                                      IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
-                                      Panel.ZIndex="1"/>
+                    <!-- Оверлей: кликается весь контрол -->
+                    <ToggleButton Grid.ColumnSpan="2" Focusable="False"
+                                  Background="Transparent"
+                                  Template="{StaticResource ComboToggleFull}"
+                                  IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                  Panel.ZIndex="1"/>
 
-                        <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}"
-                               AllowsTransparency="True" Focusable="False" StaysOpen="False">
+                    <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}"
+                           AllowsTransparency="True" Focusable="False" StaysOpen="False">
+                        <!-- ВАЖНО: Grid внутри Popup c MinWidth по ширине ComboBox -->
+                        <Grid MinWidth="{TemplateBinding ActualWidth}">
                             <Border CornerRadius="3" Background="{StaticResource Brush.Card}"
-                                    BorderBrush="{StaticResource Brush.Border}" BorderThickness="1"
-                                    Width="{Binding PlacementTarget.ActualWidth, RelativeSource={RelativeSource AncestorType=Popup}}">
+                                    BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
                                 <ScrollViewer Style="{x:Null}">
                                     <ItemsPresenter/>
                                 </ScrollViewer>
                             </Border>
-                        </Popup>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+                        </Grid>
+                    </Popup>
+                </Grid>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
 
-        <Setter Property="ItemContainerStyle">
-            <Setter.Value>
-                <Style TargetType="ComboBoxItem">
-                    <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="Padding" Value="8,5"/>
-                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                                <Border x:Name="bd" Background="{TemplateBinding Background}">
-                                    <ContentPresenter/>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsHighlighted" Value="True">
-                                        <Setter TargetName="bd" Property="Background" Value="{StaticResource Brush.ItemHover}"/>
-                                    </Trigger>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="bd" Property="Background" Value="{StaticResource Brush.ItemSel}"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Setter.Value>
-        </Setter>
-    </Style>
+    <Setter Property="ItemContainerStyle">
+        <Setter.Value>
+            <Style TargetType="ComboBoxItem">
+                <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Padding" Value="8,5"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ComboBoxItem}">
+                            <Border x:Name="bd" Background="{TemplateBinding Background}">
+                                <ContentPresenter/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsHighlighted" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource Brush.ItemHover}"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="{StaticResource Brush.ItemSel}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Setter.Value>
+    </Setter>
+</Style>
 
     <!-- Радио -->
     <Style TargetType="RadioButton">
