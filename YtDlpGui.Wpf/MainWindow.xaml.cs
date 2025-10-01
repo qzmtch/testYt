@@ -43,6 +43,10 @@ namespace YtDlpGui.Wpf
             this.Loaded += async (_, __) =>
             {
                 await LoadPresetsAsync();
+
+                // инициализируем видимость блоков базового режима
+                DownloadTypeChanged(null, null);
+
                 _uiReady = true;
             };
         }
@@ -214,7 +218,7 @@ namespace YtDlpGui.Wpf
                 _allFormats = _info.formats ?? new List<Format>();
                 BuildFilters();
                 ApplyFilters();
-                BuildSubtitles(); // <--- метод есть ниже
+                BuildSubtitles();
 
                 StatusText.Text = "Информация получена.";
             }
@@ -254,7 +258,110 @@ namespace YtDlpGui.Wpf
             catch { }
         }
 
-        // ---------- Фильтры / форматы ----------
+        // ---------- Базовый режим (тип/качество/форматы) ----------
+
+        private void DownloadTypeChanged(object sender, RoutedEventArgs e)
+        {
+            if (CustomTypeRadio.IsChecked == true)
+            {
+                CustomFormatPanel.Visibility = Visibility.Visible;
+                AddAudioCheck.Visibility = Visibility.Collapsed;
+                VideoFormatCombo.IsEnabled = false;
+                AudioFormatCombo.IsEnabled = true;
+            }
+            else if (AudioTypeRadio.IsChecked == true)
+            {
+                CustomFormatPanel.Visibility = Visibility.Collapsed;
+                AddAudioCheck.Visibility = Visibility.Collapsed;
+                VideoFormatCombo.IsEnabled = false;
+                AudioFormatCombo.IsEnabled = true;
+            }
+            else // Видео
+            {
+                CustomFormatPanel.Visibility = Visibility.Collapsed;
+                AddAudioCheck.Visibility = Visibility.Visible;
+                VideoFormatCombo.IsEnabled = true;
+                AudioFormatCombo.IsEnabled = true;
+            }
+        }
+
+        private string BuildSimpleFormatSelector()
+        {
+            // Кастомный режим: берём как есть
+            if (CustomTypeRadio.IsChecked == true)
+            {
+                var t = (CustomFormatText.Text ?? "").Trim();
+                return string.IsNullOrWhiteSpace(t) ? "best" : t;
+            }
+
+            // helpers
+            string GetSelected(ComboBox cb)
+            {
+                if (cb.SelectedItem is ComboBoxItem cbi) return (cbi.Content as string) ?? "best";
+                return (cb.Text ?? "best").Trim();
+            }
+            int ParseHeight(string s)
+            {
+                if (string.Equals(s, "best", StringComparison.OrdinalIgnoreCase)) return 0;
+                if (s != null && s.EndsWith("p", StringComparison.OrdinalIgnoreCase) && int.TryParse(s.TrimEnd('p', 'P'), out var p)) return p;
+                return 0;
+            }
+            string AudioExtForVideo(string vext)
+            {
+                switch ((vext ?? "").ToLowerInvariant())
+                {
+                    case "mp4": return "m4a";
+                    case "mov": return "m4a";
+                    case "webm": return "webm"; // как правило opus внутри webm
+                    default: return null;
+                }
+            }
+
+            // Аудио-режим: bestaudio или bestaudio[ext=...]
+            if (AudioTypeRadio.IsChecked == true)
+            {
+                var aextSel = GetSelected(AudioFormatCombo).ToLowerInvariant();
+                if (aextSel == "best") return "bestaudio";
+                return $"bestaudio[ext={aextSel}]";
+            }
+
+            // Видео-режим
+            var vextSel = GetSelected(VideoFormatCombo).ToLowerInvariant(); // best/mp4/webm/...
+            var qSel = GetSelected(QualityCombo).ToLowerInvariant();        // best/1080p/...
+            var h = ParseHeight(qSel);
+            bool addAudio = AddAudioCheck.IsChecked == true;
+
+            // bestvideo-подобный
+            string v = "bv*";
+            if (vextSel != "best") v += $"[ext={vextSel}]";
+            if (h > 0) v += $"[height<={h}]";
+
+            if (addAudio)
+            {
+                var aextSel = GetSelected(AudioFormatCombo).ToLowerInvariant();
+                if (aextSel == "best")
+                    aextSel = AudioExtForVideo(vextSel) ?? "best";
+
+                string a = (aextSel == "best") ? "ba" : $"ba[ext={aextSel}]";
+
+                // fallback: комбинированный b с теми же ограничениями
+                string b = "b";
+                if (vextSel != "best") b += $"[ext={vextSel}]";
+                if (h > 0) b += $"[height<={h}]";
+
+                return $"{v}+{a}/{b}";
+            }
+            else
+            {
+                string b = "b";
+                if (vextSel != "best") b += $"[ext={vextSel}]";
+                if (h > 0) b += $"[height<={h}]";
+
+                return $"{v}/{b}";
+            }
+        }
+
+        // ---------- Фильтры / форматы (расширенный режим) ----------
 
         private void BuildFilters()
         {
@@ -288,8 +395,8 @@ namespace YtDlpGui.Wpf
         private static string GetComboSelectedText(ComboBox cb)
         {
             if (cb == null) return null;
-            if (cb.SelectedItem is string s1) return s1;
             if (cb.SelectedItem is ComboBoxItem cbi) return cbi.Content as string;
+            if (cb.SelectedItem is string s1) return s1;
             return cb.Text;
         }
 
@@ -360,7 +467,7 @@ namespace YtDlpGui.Wpf
             SubsItems.ItemsSource = langs;
         }
 
-        // ---------- Построение селектора ----------
+        // ---------- Селектор форматов ----------
 
         private string BuildFormatSelectorFromSelection(out bool useCommaTemplate)
         {
@@ -384,7 +491,7 @@ namespace YtDlpGui.Wpf
             return string.Join(joiner, ids);
         }
 
-        // ---------- Загрузка по выбранным форматам ----------
+        // ---------- Загрузка ----------
 
         private async void DownloadBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -399,8 +506,16 @@ namespace YtDlpGui.Wpf
             if (string.IsNullOrWhiteSpace(outDir)) outDir = Environment.CurrentDirectory;
             try { Directory.CreateDirectory(outDir); } catch { }
 
+            // Если выбран расширенный список — используем его, иначе базовый режим
             bool useCommaTemplate;
-            string selector = BuildFormatSelectorFromSelection(out useCommaTemplate);
+            string selector;
+            if (FormatsList?.SelectedItems?.Count > 0)
+                selector = BuildFormatSelectorFromSelection(out useCommaTemplate);
+            else
+            {
+                selector = BuildSimpleFormatSelector();
+                useCommaTemplate = selector.Contains(",");
+            }
 
             string template = useCommaTemplate
                 ? Path.Combine(outDir, "%(title)s.f%(format_id)s.%(ext)s")
@@ -502,7 +617,14 @@ namespace YtDlpGui.Wpf
             if (string.IsNullOrWhiteSpace(url)) return;
 
             bool useCommaTemplate;
-            string selector = BuildFormatSelectorFromSelection(out useCommaTemplate);
+            string selector;
+            if (FormatsList?.SelectedItems?.Count > 0)
+                selector = BuildFormatSelectorFromSelection(out useCommaTemplate);
+            else
+            {
+                selector = BuildSimpleFormatSelector();
+                useCommaTemplate = selector.Contains(",");
+            }
 
             var outDir = string.IsNullOrWhiteSpace(OutputFolderText.Text) ? Environment.CurrentDirectory : OutputFolderText.Text.Trim();
             string template = useCommaTemplate
