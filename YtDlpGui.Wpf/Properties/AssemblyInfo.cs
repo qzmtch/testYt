@@ -1,11 +1,11 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("YtDlpGui.Wpf")]
-[assembly: AssemblyDescription("Simple yt-dlp GUI (WPF .NET Framework 4.7.2)")]
+[assembly: AssemblyTitle("ytdlg")]
+[assembly: AssemblyDescription("yt-dlp GUI")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("YtDlpGui.Wpf")] 
+[assembly: AssemblyProduct("ytdlg")] 
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
