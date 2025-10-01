@@ -82,13 +82,15 @@
     <Button x:Name="DownloadBtn" Content="Скачать" Click="DownloadBtn_Click" MinWidth="90"/>
     <Button x:Name="CancelBtn" Content="Отмена" Click="CancelBtn_Click" IsEnabled="False" MinWidth="90"/>
 
-    <!-- иконки -->
-    <Button Click="OpenFolder_Click" ToolTip="Открыть папку" Margin="6,0,0,0" MinWidth="34" Padding="6,4">
-        <Path Width="14" Height="12" Fill="White" Data="M2,6 H8 L10,8 H22 V20 H2 Z"/>
-    </Button>
-    <Button Click="CopyCmd_Click" ToolTip="Скопировать команду" Margin="6,0,0,0" MinWidth="34" Padding="6,4">
-        <Path Width="12" Height="12" Fill="White" Data="M4,3 H13 V14 H4 Z M7,6 H16 V17 H7 Z"/>
-    </Button>
+    <!-- Открыть папку (MDL2 OpenLocal) -->
+<Button Click="OpenFolder_Click" ToolTip="Открыть папку" Margin="6,0,0,0" MinWidth="34" Padding="0">
+    <TextBlock Text="&#xE8DA;" FontFamily="Segoe MDL2 Assets" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+</Button>
+
+<!-- Скопировать команду (MDL2 Copy) -->
+<Button Click="CopyCmd_Click" ToolTip="Скопировать команду" Margin="6,0,0,0" MinWidth="34" Padding="0">
+    <TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+</Button>
 </WrapPanel>
 
                                 <!-- Прогресс -->
