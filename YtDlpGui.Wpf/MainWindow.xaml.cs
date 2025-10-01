@@ -19,9 +19,13 @@ namespace YtDlpGui.Wpf
     public partial class MainWindow : Window
     {
         private readonly YtDlpService _svc = new YtDlpService();
+        private readonly PresetService _presetSvc = new PresetService();
+
         private YtDlpInfo _info;
         private List<Format> _allFormats = new List<Format>();
         private List<FormatDisplay> _currentDisplay = new List<FormatDisplay>();
+        private PresetStore _presetStore = new PresetStore();
+
         private CancellationTokenSource _cts;
         private bool _uiReady;
 
@@ -33,11 +37,136 @@ namespace YtDlpGui.Wpf
         {
             InitializeComponent();
 
-            AutoMergeCheck.IsChecked = true;
-OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            // дефолтная папка — рабочий стол (ничего не создаём)
+            OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
-            // включаем UI после полной загрузки окна
-            this.Loaded += (_, __) => { _uiReady = true; };
+            this.Loaded += async (_, __) =>
+            {
+                await LoadPresetsAsync();
+                _uiReady = true;
+            };
+        }
+
+        private async Task LoadPresetsAsync()
+        {
+            _presetStore = await _presetSvc.LoadAsync();
+            PresetsCombo.ItemsSource = _presetStore.Items;
+            var def = _presetStore.Items.FirstOrDefault(p => p.IsDefault) ?? _presetStore.Items.FirstOrDefault();
+            if (def != null)
+            {
+                PresetsCombo.SelectedItem = def;
+                PresetNameText.Text = def.Name;
+                PresetArgsText.Text = def.Args;
+            }
+        }
+
+        private async void PresetsCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_uiReady) return;
+            var p = PresetsCombo.SelectedItem as Preset;
+            if (p == null) return;
+
+            PresetNameText.Text = p.Name;
+            PresetArgsText.Text = p.Args;
+
+            _presetSvc.MarkDefault(_presetStore, p.Name);
+            await _presetSvc.SaveAsync(_presetStore);
+        }
+
+        private async void SavePreset_Click(object sender, RoutedEventArgs e)
+        {
+            var name = (PresetNameText.Text ?? "").Trim();
+            var args = (PresetArgsText.Text ?? "").Trim();
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                MessageBox.Show("Введите имя пресета.", "Пресеты", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var existing = _presetStore.Items.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+            if (existing == null)
+            {
+                existing = new Preset { Name = name, Args = args, IsDefault = true };
+                foreach (var i in _presetStore.Items) i.IsDefault = false;
+                _presetStore.Items.Add(existing);
+            }
+            else
+            {
+                existing.Args = args;
+                foreach (var i in _presetStore.Items) i.IsDefault = false;
+                existing.IsDefault = true;
+            }
+
+            await _presetSvc.SaveAsync(_presetStore);
+
+            PresetsCombo.ItemsSource = null;
+            PresetsCombo.ItemsSource = _presetStore.Items;
+            PresetsCombo.SelectedItem = existing;
+            StatusText.Text = "Пресет сохранён и установлен по умолчанию.";
+        }
+
+        private async void DownloadPreset_Click(object sender, RoutedEventArgs e)
+        {
+            var url = UrlText.Text?.Trim();
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                MessageBox.Show("Введите ссылку.", "yt-dlp GUI", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var args = (PresetArgsText.Text ?? "").Trim();
+            var outDir = OutputFolderText.Text?.Trim();
+            if (string.IsNullOrWhiteSpace(outDir)) outDir = Environment.CurrentDirectory;
+            try { Directory.CreateDirectory(outDir); } catch { }
+
+            string template = Path.Combine(outDir, "%(title)s [%(id)s].%(ext)s");
+            bool ignoreCfg = IgnoreConfigCheck.IsChecked == true;
+
+            DownloadBtn.IsEnabled = false;
+            CancelBtn.IsEnabled = true;
+            StatusText.Text = "Загрузка (пресет)...";
+            ProgressBar.Value = 0;
+            ProgressText.Text = "";
+
+            try
+            {
+                _svc.YtDlpPath = string.IsNullOrWhiteSpace(YtDlpPathText.Text) ? "yt-dlp.exe" : YtDlpPathText.Text.Trim();
+                using (_cts = new CancellationTokenSource())
+                {
+                    var prog = new Progress<(double p, string line)>(t =>
+                    {
+                        if (!double.IsNaN(t.p)) ProgressBar.Value = Math.Max(0, Math.Min(100, t.p));
+                        ProgressText.Text = t.line;
+                    });
+
+                    int code = await _svc.DownloadWithArgsAsync(url, args, template, ignoreCfg, prog, _cts.Token);
+                    if (code == 0)
+                    {
+                        StatusText.Text = "Готово.";
+                        ProgressText.Text = "Загрузка завершена";
+                    }
+                    else
+                    {
+                        StatusText.Text = $"yt-dlp завершился с кодом {code}";
+                        MessageBox.Show($"yt-dlp завершился с кодом {code}", "Загрузка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                StatusText.Text = "Отменено.";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Ошибка.";
+                MessageBox.Show(ex.Message, "Ошибка загрузки", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                DownloadBtn.IsEnabled = true;
+                CancelBtn.IsEnabled = false;
+            }
         }
 
         private async void FetchBtn_Click(object sender, RoutedEventArgs e)
@@ -56,10 +185,11 @@ OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desk
             try
             {
                 _svc.YtDlpPath = string.IsNullOrWhiteSpace(YtDlpPathText.Text) ? "yt-dlp.exe" : YtDlpPathText.Text.Trim();
+                bool ignoreCfg = IgnoreConfigCheck.IsChecked == true;
 
                 using (_cts = new CancellationTokenSource())
                 {
-                    _info = await _svc.GetInfoAsync(url, _cts.Token);
+                    _info = await _svc.GetInfoAsync(url, ignoreCfg, _cts.Token);
                 }
 
                 TitleText = _info.title;
@@ -109,30 +239,25 @@ OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desk
                     ThumbImage.Source = bmp;
                 }
             }
-            catch { /* игнор превью */ }
+            catch { }
         }
 
         private void BuildFilters()
         {
-            // ext
-            var exts = _allFormats.Select(f => f.ext)
-                                  .Where(s => !string.IsNullOrWhiteSpace(s))
+            var exts = _allFormats.Select(f => f.ext).Where(s => !string.IsNullOrWhiteSpace(s))
                                   .Distinct(StringComparer.OrdinalIgnoreCase)
-                                  .OrderBy(s => s, StringComparer.OrdinalIgnoreCase)
-                                  .ToList();
+                                  .OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList();
 
             ExtCombo.Items.Clear();
             ExtCombo.Items.Add(new ComboBoxItem { Content = "Все", IsSelected = true });
             foreach (var e in exts) ExtCombo.Items.Add(e);
 
-            // resolution/height
             var res = _allFormats.Select(f =>
                         f.height.HasValue ? $"{f.height.Value}p" :
                         !string.IsNullOrWhiteSpace(f.resolution) ? f.resolution : null)
                         .Where(s => !string.IsNullOrWhiteSpace(s))
                         .Distinct(StringComparer.OrdinalIgnoreCase)
-                        .OrderBy(s => ParseResOrder(s))
-                        .ToList();
+                        .OrderBy(s => ParseResOrder(s)).ToList();
 
             ResCombo.Items.Clear();
             ResCombo.Items.Add(new ComboBoxItem { Content = "Любое разрешение", IsSelected = true });
@@ -143,7 +268,6 @@ OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desk
         {
             if (!string.IsNullOrEmpty(s) && s.EndsWith("p") && int.TryParse(s.TrimEnd('p'), out var p))
                 return p;
-            // "audio only" -> минимальный приоритет
             return int.MinValue;
         }
 
@@ -169,21 +293,17 @@ OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desk
 
             var q = _allFormats.AsEnumerable();
 
-            // Тип
             if (FilterVideo.IsChecked == true)
                 q = q.Where(f => !string.Equals(f.video_ext, "none", StringComparison.OrdinalIgnoreCase));
             else if (FilterAudio.IsChecked == true)
                 q = q.Where(f => string.Equals(f.video_ext, "none", StringComparison.OrdinalIgnoreCase));
 
-            // Ext
             if (!string.IsNullOrWhiteSpace(ext) && !string.Equals(ext, "Все", StringComparison.OrdinalIgnoreCase))
                 q = q.Where(f => string.Equals(f.ext, ext, StringComparison.OrdinalIgnoreCase));
 
-            // Protocol
             if (!string.IsNullOrWhiteSpace(proto) && !string.Equals(proto, "Любой протокол", StringComparison.OrdinalIgnoreCase))
                 q = q.Where(f => string.Equals(f.protocol, proto, StringComparison.OrdinalIgnoreCase));
 
-            // Resolution
             if (!string.IsNullOrWhiteSpace(res) && !string.Equals(res, "Любое разрешение", StringComparison.OrdinalIgnoreCase))
             {
                 q = q.Where(f =>
@@ -231,49 +351,19 @@ OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desk
             ApplyFilters();
         }
 
-        private void FormatsCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // no-op
-        }
+        private void FormatsCombo_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
 
         private string BuildFormatSelector()
         {
             var sel = FormatsCombo.SelectedItem as FormatDisplay;
-            if (sel == null) return "best";
-
-            var f = sel.Model;
-
-            // видео-only + авто-слияние
-            if (AutoMergeCheck.IsChecked == true &&
-                !string.Equals(f.video_ext, "none", StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(f.audio_ext, "none", StringComparison.OrdinalIgnoreCase))
-            {
-                var height = f.height ?? ParseHeightFromRes(f.resolution);
-                if (height > 0 && !string.IsNullOrWhiteSpace(f.ext))
-                    return $"bestvideo[height={height}][ext={f.ext}]+bestaudio/best";
-                if (!string.IsNullOrWhiteSpace(f.ext))
-                    return $"bestvideo[ext={f.ext}]+bestaudio/best";
-                if (height > 0)
-                    return $"bestvideo[height={height}]+bestaudio/best";
-                return $"bestvideo+bestaudio/best";
-            }
-
-            // аудио-only
-            if (AutoMergeCheck.IsChecked == true &&
-                string.Equals(f.video_ext, "none", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(f.audio_ext, "none", StringComparison.OrdinalIgnoreCase))
-            {
-                return f.format_id; // или "bestaudio"
-            }
-
-            return f.format_id;
+            if (sel == null) return "best"; // ничего не выбрано — пусть yt-dlp возьмёт best
+            return sel.Model.format_id;      // строго выбранный формат
         }
 
         private static int ParseHeightFromRes(string res)
         {
             if (string.IsNullOrWhiteSpace(res)) return 0;
-            if (res.EndsWith("p", StringComparison.OrdinalIgnoreCase) &&
-                int.TryParse(res.TrimEnd('p', 'P'), out var p)) return p;
+            if (res.EndsWith("p", StringComparison.OrdinalIgnoreCase) && int.TryParse(res.TrimEnd('p', 'P'), out var p)) return p;
             var parts = res.Split('x');
             if (parts.Length == 2 && int.TryParse(parts[1], out var h)) return h;
             return 0;
@@ -288,13 +378,13 @@ OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desk
             }
 
             var sel = FormatsCombo.SelectedItem as FormatDisplay;
-            if (sel == null)
+            var url = UrlText.Text?.Trim();
+            if (string.IsNullOrWhiteSpace(url))
             {
-                MessageBox.Show("Выберите формат.", "yt-dlp GUI", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Введите ссылку.", "yt-dlp GUI", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            var url = UrlText.Text?.Trim();
             var outDir = OutputFolderText.Text?.Trim();
             if (string.IsNullOrWhiteSpace(outDir)) outDir = Environment.CurrentDirectory;
             try { Directory.CreateDirectory(outDir); } catch { }
@@ -305,11 +395,11 @@ OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desk
             var checkedLangs = GetCheckedSubLangs();
             bool writeSubs = checkedLangs.Count > 0;
             string subLangs = string.Join(",", checkedLangs);
+            bool ignoreCfg = IgnoreConfigCheck.IsChecked == true;
 
             DownloadBtn.IsEnabled = false;
             CancelBtn.IsEnabled = true;
             StatusText.Text = "Загрузка...";
-            ProgressBar.IsIndeterminate = false;
             ProgressBar.Value = 0;
             ProgressText.Text = "";
 
@@ -320,12 +410,11 @@ OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desk
                 {
                     var prog = new Progress<(double p, string line)>(t =>
                     {
-                        if (!double.IsNaN(t.p))
-                            ProgressBar.Value = Math.Max(0, Math.Min(100, t.p));
+                        if (!double.IsNaN(t.p)) ProgressBar.Value = Math.Max(0, Math.Min(100, t.p));
                         ProgressText.Text = t.line;
                     });
 
-                    int code = await _svc.DownloadAsync(url, QuoteIfNeeded(selector), template, subLangs, writeSubs, prog, _cts.Token);
+                    int code = await _svc.DownloadAsync(url, QuoteIfNeeded(selector), template, subLangs, writeSubs, ignoreCfg, prog, _cts.Token);
                     if (code == 0)
                     {
                         StatusText.Text = "Готово.";
@@ -378,9 +467,11 @@ OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desk
         private void CopyCmd_Click(object sender, RoutedEventArgs e)
         {
             var url = UrlText.Text?.Trim();
-            string selector = BuildFormatSelector();
             var outDir = string.IsNullOrWhiteSpace(OutputFolderText.Text) ? Environment.CurrentDirectory : OutputFolderText.Text.Trim();
             string template = Path.Combine(outDir, "%(title)s [%(id)s].%(ext)s");
+            bool ignoreCfg = IgnoreConfigCheck.IsChecked == true;
+
+            string selector = BuildFormatSelector();
 
             var checkedLangs = GetCheckedSubLangs();
             bool writeSubs = checkedLangs.Count > 0;
@@ -388,10 +479,11 @@ OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desk
 
             var sb = new System.Text.StringBuilder();
             sb.Append("yt-dlp ");
+            if (ignoreCfg) sb.Append("--ignore-config ");
+            sb.Append("--newline --no-color ");
             sb.Append($"-f {QuoteIfNeeded(selector)} ");
             if (writeSubs && !string.IsNullOrWhiteSpace(subLangs))
                 sb.Append($"--write-subs --sub-langs \"{subLangs}\" ");
-            sb.Append("--ignore-config ");
             sb.Append($"-o \"{template}\" ");
             sb.Append($"\"{url}\"");
 
@@ -417,20 +509,15 @@ OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desk
         private List<string> GetCheckedSubLangs()
         {
             var res = new List<string>();
-            if (SubsItems == null) return res;
-
             foreach (var cb in FindVisualChildren<CheckBox>(SubsItems))
-            {
-                if (cb.IsChecked == true && cb.Content != null)
-                    res.Add(cb.Content.ToString());
-            }
+                if (cb.IsChecked == true && cb.Content != null) res.Add(cb.Content.ToString());
             return res.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         }
 
         private static IEnumerable<T> FindVisualChildren<T>(DependencyObject root) where T : DependencyObject
         {
             if (root == null) yield break;
-            var count = VisualTreeHelper.GetChildrenCount(root);
+            int count = VisualTreeHelper.GetChildrenCount(root);
             for (int i = 0; i < count; i++)
             {
                 var child = VisualTreeHelper.GetChild(root, i);
