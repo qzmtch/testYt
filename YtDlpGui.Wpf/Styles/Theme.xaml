@@ -103,7 +103,7 @@
         </Setter>
     </Style>
 
-    <!-- Кнопка-заглушка для клика по всей области ComboBox -->
+    <!-- Кнопка-оверлей для клика по всей области ComboBox -->
     <ControlTemplate x:Key="ComboToggleFull" TargetType="{x:Type ToggleButton}">
         <Border Background="Transparent">
             <Grid>
@@ -113,14 +113,9 @@
                 </Border>
             </Grid>
         </Border>
-        <ControlTemplate.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter TargetName="PART_ContentHost" Property="Border.Background" Value="Transparent"/>
-            </Trigger>
-        </ControlTemplate.Triggers>
     </ControlTemplate>
 
-    <!-- Комбобокс (кликается по всей области, выпадушка по ширине) -->
+    <!-- Комбобокс: кликается по всей области; выпадушка по ширине -->
     <Style TargetType="ComboBox">
         <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
         <Setter Property="Background" Value="#1AFFFFFF"/>
@@ -150,7 +145,7 @@
                                           HorizontalAlignment="Left" VerticalAlignment="Center"
                                           RecognizesAccessKey="True"/>
 
-                        <!-- Оверлей: кликаем по всей области -->
+                        <!-- Оверлей: кликается весь контрол -->
                         <ToggleButton Grid.ColumnSpan="2" Focusable="False"
                                       Background="Transparent"
                                       Template="{StaticResource ComboToggleFull}"
@@ -356,4 +351,5 @@
             </Setter.Value>
         </Setter>
     </Style>
+
 </ResourceDictionary>
