@@ -195,8 +195,9 @@ namespace YtDlpGui.Wpf
             }
 
             FetchBtn.IsEnabled = false;
-            StatusText.Text = "Получение информации...";
-            ProgressBar.IsIndeterminate = true;
+CancelBtn.IsEnabled = true;        // ← даём возможность отменить получение JSON
+StatusText.Text = "Получение информации...";
+ProgressBar.IsIndeterminate = true;
 
             try
             {
@@ -230,7 +231,8 @@ namespace YtDlpGui.Wpf
             finally
             {
                 ProgressBar.IsIndeterminate = false;
-                FetchBtn.IsEnabled = true;
+FetchBtn.IsEnabled = true;
+CancelBtn.IsEnabled = false;       // ← выключаем после завершения/ошибки/отмены
             }
         }
 
