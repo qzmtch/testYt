@@ -261,29 +261,35 @@ namespace YtDlpGui.Wpf
         // ---------- Базовый режим (тип/качество/форматы) ----------
 
         private void DownloadTypeChanged(object sender, RoutedEventArgs e)
-        {
-            if (CustomTypeRadio.IsChecked == true)
-            {
-                CustomFormatPanel.Visibility = Visibility.Visible;
-                AddAudioCheck.Visibility = Visibility.Collapsed;
-                VideoFormatCombo.IsEnabled = false;
-                AudioFormatCombo.IsEnabled = true;
-            }
-            else if (AudioTypeRadio.IsChecked == true)
-            {
-                CustomFormatPanel.Visibility = Visibility.Collapsed;
-                AddAudioCheck.Visibility = Visibility.Collapsed;
-                VideoFormatCombo.IsEnabled = false;
-                AudioFormatCombo.IsEnabled = true;
-            }
-            else // Видео
-            {
-                CustomFormatPanel.Visibility = Visibility.Collapsed;
-                AddAudioCheck.Visibility = Visibility.Visible;
-                VideoFormatCombo.IsEnabled = true;
-                AudioFormatCombo.IsEnabled = true;
-            }
-        }
+{
+    // Во время InitializeComponent Checked срабатывает раньше, чем создана нижняя часть XAML.
+    // Если что-то ещё не создано — не трогаем UI, вернёмся позже (мы ещё вызовем метод в Loaded).
+    if (CustomFormatPanel == null || AddAudioCheck == null || VideoFormatCombo == null || AudioFormatCombo == null
+        || VideoTypeRadio == null || AudioTypeRadio == null || CustomTypeRadio == null)
+        return;
+
+    if (CustomTypeRadio.IsChecked == true)
+    {
+        CustomFormatPanel.Visibility = Visibility.Visible;
+        AddAudioCheck.Visibility = Visibility.Collapsed;
+        VideoFormatCombo.IsEnabled = false;
+        AudioFormatCombo.IsEnabled = true;
+    }
+    else if (AudioTypeRadio.IsChecked == true)
+    {
+        CustomFormatPanel.Visibility = Visibility.Collapsed;
+        AddAudioCheck.Visibility = Visibility.Collapsed;
+        VideoFormatCombo.IsEnabled = false;
+        AudioFormatCombo.IsEnabled = true;
+    }
+    else // Видео
+    {
+        CustomFormatPanel.Visibility = Visibility.Collapsed;
+        AddAudioCheck.Visibility = Visibility.Visible;
+        VideoFormatCombo.IsEnabled = true;
+        AudioFormatCombo.IsEnabled = true;
+    }
+}
 
         private string BuildSimpleFormatSelector()
         {
