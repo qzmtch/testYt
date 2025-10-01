@@ -134,7 +134,7 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"/>
 
-                        <!-- Показываем выбранный элемент -->
+                        <!-- Выбранное значение -->
                         <ContentPresenter Grid.Column="0" Margin="10,2,6,2"
                                           Content="{TemplateBinding SelectionBoxItem}"
                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
@@ -316,111 +316,112 @@
             </Setter.Value>
         </Setter>
     </Style>
-<!-- Длительность показа тултипов (глобально) -->
-<Style TargetType="{x:Type FrameworkElement}">
-    <Setter Property="ToolTipService.ShowDuration" Value="30000"/>
-</Style>
 
-<!-- Тёмный тултип -->
-<Style TargetType="ToolTip">
-    <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
-    <Setter Property="Background" Value="{StaticResource Brush.Card}"/>
-    <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
-    <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="Padding" Value="8"/>
-    <Setter Property="HasDropShadow" Value="False"/>
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="ToolTip">
-                <Border CornerRadius="8"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}">
-                    <ContentPresenter Margin="{TemplateBinding Padding}"
-                                      RecognizesAccessKey="True"/>
-                </Border>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
+    <!-- Длительность показа тултипов (глобально) -->
+    <Style TargetType="{x:Type FrameworkElement}">
+        <Setter Property="ToolTipService.ShowDuration" Value="30000"/>
+    </Style>
 
-<!-- Кнопка заголовка для Expander: стрелка + текст -->
-<ControlTemplate x:Key="ExpanderHeaderToggle" TargetType="ToggleButton">
-    <Border Background="Transparent" Padding="6,8">
-        <DockPanel LastChildFill="True">
-            <Path x:Name="Arrow" Width="10" Height="10" Margin="0,0,8,0"
-                  Fill="{StaticResource Brush.Muted}"
-                  Data="M 0 0 L 6 0 L 3 4 Z"
-                  VerticalAlignment="Center"
-                  RenderTransformOrigin="0.5,0.5">
-                <Path.RenderTransform>
-                    <RotateTransform Angle="0"/>
-                </Path.RenderTransform>
-            </Path>
-            <ContentPresenter VerticalAlignment="Center" RecognizesAccessKey="True"/>
-        </DockPanel>
-    </Border>
-    <ControlTemplate.Triggers>
-        <Trigger Property="IsChecked" Value="True">
-            <Setter TargetName="Arrow" Property="RenderTransform">
-                <Setter.Value>
-                    <RotateTransform Angle="90"/>
-                </Setter.Value>
-            </Setter>
-            <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Brush.Text}"/>
-        </Trigger>
-        <Trigger Property="IsMouseOver" Value="True">
-            <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Brush.Text}"/>
-        </Trigger>
-        <Trigger Property="IsEnabled" Value="False">
-            <Setter Property="Opacity" Value="0.5"/>
-        </Trigger>
-    </ControlTemplate.Triggers>
-</ControlTemplate>
+    <!-- Тёмный тултип -->
+    <Style TargetType="ToolTip">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Brush.Card}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8"/>
+        <Setter Property="HasDropShadow" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <Border CornerRadius="8"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          RecognizesAccessKey="True"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
-<!-- Стиль Expander: тёмный, со скруглением, без «квадратных» стрелок -->
-<Style TargetType="Expander">
-    <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="Expander">
-                <Border CornerRadius="10"
-                        Background="{StaticResource Brush.Card}"
-                        BorderBrush="{StaticResource Brush.Border}"
-                        BorderThickness="1"
-                        SnapsToDevicePixels="True">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
+    <!-- Кнопка заголовка для Expander: стрелка + текст -->
+    <ControlTemplate x:Key="ExpanderHeaderToggle" TargetType="ToggleButton">
+        <Border Background="Transparent" Padding="6,8">
+            <DockPanel LastChildFill="True">
+                <Path x:Name="Arrow" Width="10" Height="10" Margin="0,0,8,0"
+                      Fill="{StaticResource Brush.Muted}"
+                      Data="M 0 0 L 6 0 L 3 4 Z"
+                      VerticalAlignment="Center"
+                      RenderTransformOrigin="0.5,0.5">
+                    <Path.RenderTransform>
+                        <RotateTransform Angle="0"/>
+                    </Path.RenderTransform>
+                </Path>
+                <ContentPresenter VerticalAlignment="Center" RecognizesAccessKey="True"/>
+            </DockPanel>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Arrow" Property="RenderTransform">
+                    <Setter.Value>
+                        <RotateTransform Angle="90"/>
+                    </Setter.Value>
+                </Setter>
+                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Brush.Text}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Brush.Text}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.5"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
 
-                        <!-- Заголовок -->
-                        <ToggleButton x:Name="HeaderSite"
-                                      Template="{StaticResource ExpanderHeaderToggle}"
-                                      Content="{TemplateBinding Header}"
-                                      Foreground="{TemplateBinding Foreground}"
-                                      IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
-                                      Focusable="False"
-                                      Background="Transparent"/>
+    <!-- Expander -->
+    <Style TargetType="Expander">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Expander">
+                    <Border CornerRadius="10"
+                            Background="{StaticResource Brush.Card}"
+                            BorderBrush="{StaticResource Brush.Border}"
+                            BorderThickness="1"
+                            SnapsToDevicePixels="True">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
 
-                        <!-- Контент -->
-                        <ContentPresenter x:Name="ExpandSite"
-                                          Grid.Row="1"
-                                          Margin="0,6,0,6"
-                                          Visibility="Collapsed"
-                                          Focusable="False"/>
+                            <!-- Заголовок -->
+                            <ToggleButton x:Name="HeaderSite"
+                                          Template="{StaticResource ExpanderHeaderToggle}"
+                                          Content="{TemplateBinding Header}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Focusable="False"
+                                          Background="Transparent"/>
 
-                    </Grid>
+                            <!-- Контент -->
+                            <ContentPresenter x:Name="ExpandSite"
+                                              Grid.Row="1"
+                                              Margin="0,6,0,6"
+                                              Visibility="Collapsed"
+                                              Focusable="False"/>
+                        </Grid>
+                    </Border>
+                    <!-- ВАЖНО: триггеры ДОЛЖНЫ быть ПРЯМЫМ дочерним элементом ControlTemplate -->
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsExpanded" Value="True">
                             <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
-                </Border>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
 </ResourceDictionary>
