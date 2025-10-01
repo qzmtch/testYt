@@ -79,12 +79,22 @@
                                 </Grid>
 
                                 <!-- Кнопки -->
-                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                    <Button x:Name="DownloadBtn" Content="Скачать" Click="DownloadBtn_Click" MinWidth="92"/>
-                                    <Button x:Name="CancelBtn" Content="Отмена" Click="CancelBtn_Click" IsEnabled="False" MinWidth="92"/>
-                                    <Button Content="Открыть папку" Click="OpenFolder_Click" MinWidth="110"/>
-                                    <Button Content="Скопировать команду" Click="CopyCmd_Click" MinWidth="150"/>
-                                </StackPanel>
+<StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+    <Button x:Name="DownloadBtn" Content="Скачать" Click="DownloadBtn_Click" MinWidth="90"/>
+    <Button x:Name="CancelBtn" Content="Отмена" Click="CancelBtn_Click" IsEnabled="False" MinWidth="90"/>
+
+    <!-- Иконка: Открыть папку -->
+    <Button Click="OpenFolder_Click" ToolTip="Открыть папку" Margin="6,0,0,0" MinWidth="34" Padding="6,4">
+        <Path Width="14" Height="12" Fill="White"
+              Data="M2,6 H8 L10,8 H22 V20 H2 Z"/>
+    </Button>
+
+    <!-- Иконка: Скопировать команду -->
+    <Button Click="CopyCmd_Click" ToolTip="Скопировать команду" Margin="6,0,0,0" MinWidth="34" Padding="6,4">
+        <Path Width="12" Height="12" Fill="White"
+              Data="M4,3 H13 V14 H4 Z M7,6 H16 V17 H7 Z"/>
+    </Button>
+</StackPanel>
 
                                 <!-- Прогресс -->
                                 <ProgressBar x:Name="ProgressBar" Margin="0,8,0,0" Minimum="0" Maximum="100" Height="6"/>
