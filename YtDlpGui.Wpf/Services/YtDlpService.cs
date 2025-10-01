@@ -309,5 +309,40 @@ download```\s+Destination:\s+(?<p>.+)$", RegexOptions.Compiled);
             [DllImport("kernel32.dll", SetLastError = true)]
             private static extern bool CloseHandle(IntPtr hObject);
         }
+        
+public async Task<int> DownloadAsyncAdv(
+    string url,
+    string formatSelector,
+    string outputTemplate,
+    string subLangs,
+    bool writeSubs,
+    bool ignoreConfig,
+    string formatSort,
+    bool videoMultistreams,
+    bool audioMultistreams,
+    IProgress<(double percent, string line)> progress,
+    CancellationToken ct)
+{
+    if (string.IsNullOrWhiteSpace(url))
+        throw new ArgumentException("URL пуст.", nameof(url));
+    if (string.IsNullOrWhiteSpace(formatSelector))
+        formatSelector = "best";
+    if (string.IsNullOrWhiteSpace(outputTemplate))
+        outputTemplate = Path.Combine(Environment.CurrentDirectory, "%(title)s [%(id)s].%(ext)s");
+
+    var sb = new StringBuilder();
+    if (ignoreConfig) sb.Append("--ignore-config ");
+    sb.Append("--newline --no-color ");
+    if (!string.IsNullOrWhiteSpace(formatSort)) sb.Append($"-S \"{formatSort}\" ");
+    if (videoMultistreams) sb.Append("--video-multistreams ");
+    if (audioMultistreams) sb.Append("--audio-multistreams ");
+    sb.Append($"-f {formatSelector} ");
+    if (writeSubs && !string.IsNullOrWhiteSpace(subLangs))
+        sb.Append($"--write-subs --sub-langs \"{subLangs}\" ");
+    sb.Append($"-o \"{outputTemplate}\" ");
+    sb.Append($"\"{url}\"");
+
+    return await RunWithProgressAsync(YtDlpPath, sb.ToString(), progress, ct).ConfigureAwait(false);
+}
     }
 }
