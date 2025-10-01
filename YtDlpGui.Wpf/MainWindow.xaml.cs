@@ -223,17 +223,27 @@ ProgressBar.IsIndeterminate = true;
 
                 StatusText.Text = "Информация получена.";
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                StatusText.Text = "Ошибка.";
-            }
-            finally
-            {
-                ProgressBar.IsIndeterminate = false;
-FetchBtn.IsEnabled = true;
-CancelBtn.IsEnabled = false;       // ← выключаем после завершения/ошибки/отмены
-            }
+            catch (OperationCanceledException)
+{
+    StatusText.Text = "Отменено.";
+}
+catch (Exception ex)
+{
+    // Если отменили очень поздно и пришла обычная ошибка — не шумим
+    if (_cts?.IsCancellationRequested == true)
+        StatusText.Text = "Отменено.";
+    else
+    {
+        MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        StatusText.Text = "Ошибка.";
+    }
+}
+finally
+{
+    ProgressBar.IsIndeterminate = false;
+    FetchBtn.IsEnabled = true;
+    CancelBtn.IsEnabled = false;
+}
         }
 
         private async Task LoadThumbnailAsync(string url)
