@@ -3,31 +3,30 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="yt-dlp GUI" Width="980" Height="720" WindowStartupLocation="CenterScreen"
         Background="{StaticResource Brush.Bg}">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Margin="16">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="8"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-            <!-- Заголовок -->
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="yt-dlp GUI" FontWeight="SemiBold" FontSize="18"/>
-                <TextBlock Text=" · NET Framework 4.7.2" Margin="8,0,0,0" Foreground="{StaticResource Brush.Muted}"/>
-            </StackPanel>
+        <!-- Заголовок -->
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Text="yt-dlp GUI" FontWeight="SemiBold" FontSize="18"/>
+            <TextBlock Text=" · NET Framework 4.7.2" Margin="8,0,0,0" Foreground="{StaticResource Brush.Muted}"/>
+        </StackPanel>
 
-            <!-- Основная карточка -->
-            <Border Grid.Row="2" Style="{StaticResource Card}">
+        <!-- Прокручиваемый контент -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Border Style="{StaticResource Card}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="3*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Левая панель -->
+                    <!-- Левая панель (инфо) -->
                     <StackPanel Margin="0,0,12,0">
                         <TextBlock Text="Ссылка на видео" Margin="0,0,0,6" Foreground="{StaticResource Brush.Muted}"/>
                         <Grid>
@@ -57,70 +56,85 @@
 
                     <!-- Правая панель -->
                     <StackPanel Grid.Column="1">
-
-                        <!-- Простой режим -->
+                        <!-- Базовый режим -->
                         <Border Style="{StaticResource Card}">
                             <StackPanel>
-                                <TextBlock Text="Простой режим" Foreground="{StaticResource Brush.Muted}"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,6,0,6">
-                                    <RadioButton x:Name="TypeVideo" Content="Видео" IsChecked="True" Checked="DownloadTypeChanged"/>
-                                    <RadioButton x:Name="TypeAudio" Content="Аудио" Margin="12,0,0,0" Checked="DownloadTypeChanged"/>
-                                    <RadioButton x:Name="TypeCustom" Content="Кастом" Margin="12,0,0,0" Checked="DownloadTypeChanged"/>
+                                <TextBlock Text="Базовый режим" Foreground="{StaticResource Brush.Muted}" Margin="0,0,0,6"/>
+
+                                <!-- Тип скачивания -->
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="VideoTypeRadio" Content="Видео" IsChecked="True" Checked="DownloadTypeChanged"/>
+                                    <RadioButton x:Name="AudioTypeRadio" Content="Аудио" Margin="12,0,0,0" Checked="DownloadTypeChanged"/>
+                                    <RadioButton x:Name="CustomTypeRadio" Content="Кастом" Margin="12,0,0,0" Checked="DownloadTypeChanged"/>
                                 </StackPanel>
 
-                                <!-- Видео-опции -->
-                                <StackPanel x:Name="VideoOptionsPanel">
-                                    <Grid Margin="0,0,0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
+                                <!-- Качество + добавить аудио -->
+                                <Grid Margin="6,6,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="230" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Orientation="Horizontal" Grid.Column="0">
                                         <TextBlock Text="Качество:" VerticalAlignment="Center" Foreground="{StaticResource Brush.Muted}"/>
-                                        <ComboBox x:Name="QualityCombo" Grid.Column="1" Margin="6,0,12,0" MinWidth="120">
+                                        <ComboBox x:Name="QualityCombo" Width="120" Margin="6,0,0,0">
                                             <ComboBoxItem Content="best" IsSelected="True"/>
+                                            <ComboBoxItem Content="2160p"/>
+                                            <ComboBoxItem Content="1440p"/>
+                                            <ComboBoxItem Content="1080p"/>
+                                            <ComboBoxItem Content="720p"/>
+                                            <ComboBoxItem Content="480p"/>
+                                            <ComboBoxItem Content="360p"/>
+                                            <ComboBoxItem Content="240p"/>
+                                            <ComboBoxItem Content="144p"/>
                                         </ComboBox>
+                                    </StackPanel>
+                                    <CheckBox x:Name="AddAudioCheck" Grid.Column="1" Content="Добавить аудио" IsChecked="True" HorizontalAlignment="Left"/>
+                                </Grid>
 
-                                        <TextBlock Grid.Column="2" Text="Формат:" VerticalAlignment="Center" Foreground="{StaticResource Brush.Muted}"/>
-                                        <ComboBox x:Name="VideoFormatCombo" Grid.Column="3" Margin="6,0,0,0" MinWidth="120">
-                                            <ComboBoxItem Content="Авто" IsSelected="True"/>
+                                <!-- Формат (видео/аудио) и кастом -->
+                                <Grid Margin="6,6,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="230" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Формат (видео)" Foreground="{StaticResource Brush.Muted}"/>
+                                        <ComboBox x:Name="VideoFormatCombo" MinWidth="160">
+                                            <ComboBoxItem Content="best" IsSelected="True"/>
                                             <ComboBoxItem Content="mp4"/>
                                             <ComboBoxItem Content="webm"/>
-                                        </ComboBox>
-                                    </Grid>
-
-                                    <StackPanel Orientation="Horizontal">
-                                        <CheckBox x:Name="VideoAddAudioCheck" Content="Добавить звук" IsChecked="True"/>
-                                        <TextBlock Text="Аудио формат:" VerticalAlignment="Center" Foreground="{StaticResource Brush.Muted}" Margin="12,0,0,0"/>
-                                        <ComboBox x:Name="VideoAudioFormatCombo" MinWidth="110" Margin="6,0,0,0">
-                                            <ComboBoxItem Content="Авто" IsSelected="True"/>
-                                            <ComboBoxItem Content="m4a"/>
-                                            <ComboBoxItem Content="opus"/>
+                                            <ComboBoxItem Content="mkv"/>
+                                            <ComboBoxItem Content="flv"/>
+                                            <ComboBoxItem Content="avi"/>
+                                            <ComboBoxItem Content="mov"/>
                                         </ComboBox>
                                     </StackPanel>
-                                </StackPanel>
 
-                                <!-- Аудио-опции -->
-                                <StackPanel x:Name="AudioOptionsPanel" Visibility="Collapsed">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="Формат аудио:" VerticalAlignment="Center" Foreground="{StaticResource Brush.Muted}"/>
-                                        <ComboBox x:Name="AudioFormatCombo" MinWidth="140" Margin="6,0,0,0">
-                                            <ComboBoxItem Content="Авто" IsSelected="True"/>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="Формат (аудио)" Foreground="{StaticResource Brush.Muted}"/>
+                                        <ComboBox x:Name="AudioFormatCombo" MinWidth="160">
+                                            <ComboBoxItem Content="best" IsSelected="True"/>
                                             <ComboBoxItem Content="m4a"/>
-                                            <ComboBoxItem Content="opus"/>
                                             <ComboBoxItem Content="mp3"/>
+                                            <ComboBoxItem Content="opus"/>
+                                            <ComboBoxItem Content="ogg"/>
+                                            <ComboBoxItem Content="webm"/>
                                         </ComboBox>
                                     </StackPanel>
-                                </StackPanel>
+                                </Grid>
 
-                                <CheckBox x:Name="IgnoreConfigCheck" Content="Игнорировать конфиг (--ignore-config)" Margin="0,10,0,0"/>
+                                <StackPanel x:Name="CustomFormatPanel" Margin="0,6,0,0" Visibility="Collapsed">
+                                    <TextBlock Text="Кастомный -f" Foreground="{StaticResource Brush.Muted}"/>
+                                    <TextBox x:Name="CustomFormatText" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 
-                        <!-- Пресеты (аккордеон) -->
-                        <Expander Header="Пресеты" IsExpanded="False">
+                        <!-- Пресеты -->
+                        <Border Style="{StaticResource Card}">
                             <StackPanel>
+                                <TextBlock Text="Пресеты" Foreground="{StaticResource Brush.Muted}"/>
                                 <ComboBox x:Name="PresetsCombo" DisplayMemberPath="Name" SelectionChanged="PresetsCombo_SelectionChanged" Margin="0,6,0,6"/>
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -128,12 +142,12 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="160"/>
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="Имя:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Foreground="{StaticResource Brush.Muted}"/>
                                     <TextBox x:Name="PresetNameText" Grid.Row="0" Grid.Column="1" Margin="6,0,0,0"/>
-                                    <TextBlock Text="Аргументы (без URL и -o):" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Foreground="{StaticResource Brush.Muted}" />
+                                    <TextBlock Text="Аргументы (yt-dlp, без URL и -o):" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Foreground="{StaticResource Brush.Muted}" />
                                     <TextBox x:Name="PresetArgsText" Grid.Row="1" Grid.Column="1" Margin="6,6,0,0"/>
                                 </Grid>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
@@ -141,53 +155,58 @@
                                     <Button Content="Скачать пресетом" Margin="6,0,0,0" Click="DownloadPreset_Click"/>
                                 </StackPanel>
                             </StackPanel>
-                        </Expander>
+                        </Border>
 
-                        <!-- Расширенные (кастом) -->
-                        <Expander Header="Расширенные (форматы/мультистрим/-S)" IsExpanded="False">
+                        <!-- Расширенные форматы -->
+                        <Expander Header="Расширенные форматы (из JSON), множественный выбор" IsExpanded="False" Margin="0,10,0,0">
                             <StackPanel>
-                                <TextBlock Text="Типы для списка" Foreground="{StaticResource Brush.Muted}" Margin="0,0,0,4"/>
-                                <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Фильтры" Foreground="{StaticResource Brush.Muted}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,6">
                                     <RadioButton x:Name="FilterAll" Content="Все" IsChecked="True" Checked="FilterChanged"/>
                                     <RadioButton x:Name="FilterVideo" Content="Видео" Margin="12,0,0,0" Checked="FilterChanged"/>
                                     <RadioButton x:Name="FilterAudio" Content="Аудио" Margin="12,0,0,0" Checked="FilterChanged"/>
                                 </StackPanel>
-                                <Grid Margin="0,6,0,6">
+
+                                <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <ComboBox x:Name="ExtCombo" Grid.Column="0" MinWidth="140" SelectionChanged="FilterChanged">
+                                    <ComboBox x:Name="ExtCombo" Grid.Column="0" MinWidth="160" SelectionChanged="FilterChanged">
                                         <ComboBoxItem Content="Все" IsSelected="True"/>
                                     </ComboBox>
-                                    <ComboBox x:Name="ProtoCombo" Grid.Column="1" MinWidth="140" SelectionChanged="FilterChanged">
+                                    <ComboBox x:Name="ProtoCombo" Grid.Column="1" MinWidth="160" SelectionChanged="FilterChanged">
                                         <ComboBoxItem Content="Любой протокол" IsSelected="True"/>
                                         <ComboBoxItem Content="https"/>
                                         <ComboBoxItem Content="m3u8_native"/>
                                         <ComboBoxItem Content="http"/>
                                         <ComboBoxItem Content="dash"/>
                                     </ComboBox>
-                                    <ComboBox x:Name="ResCombo" Grid.Column="2" MinWidth="140" SelectionChanged="FilterChanged">
+                                    <ComboBox x:Name="ResCombo" Grid.Column="2" MinWidth="160" SelectionChanged="FilterChanged">
                                         <ComboBoxItem Content="Любое разрешение" IsSelected="True"/>
                                     </ComboBox>
                                 </Grid>
 
-                                <TextBlock Text="Форматы (множественный выбор)" Foreground="{StaticResource Brush.Muted}"/>
-                                <ListBox x:Name="FormatsList" SelectionMode="Extended" DisplayMemberPath="Display" Height="220" Margin="0,6,0,6"/>
-
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Режим: " VerticalAlignment="Center" Foreground="{StaticResource Brush.Muted}"/>
+                                <ListBox x:Name="FormatsList" SelectionMode="Extended" DisplayMemberPath="Display" Height="220"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                    <TextBlock Text="Режим:" VerticalAlignment="Center" Foreground="{StaticResource Brush.Muted}"/>
                                     <RadioButton x:Name="MergePlusRadio" Content="Объединить (+)" IsChecked="True" Margin="6,0,0,0"/>
                                     <RadioButton x:Name="SeparateCommaRadio" Content="Отдельно (,)" Margin="12,0,0,0"/>
                                 </StackPanel>
+                            </StackPanel>
+                        </Expander>
+
+                        <!-- Дополнительно -->
+                        <Expander Header="Дополнительно" IsExpanded="False" Margin="0,10,0,0">
+                            <StackPanel>
+                                <CheckBox x:Name="IgnoreConfigCheck" Content="Игнорировать конфиг (--ignore-config)"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                     <CheckBox x:Name="VideoMultistreamsCheck" Content="--video-multistreams"/>
                                     <CheckBox x:Name="AudioMultistreamsCheck" Content="--audio-multistreams" Margin="12,0,0,0"/>
                                 </StackPanel>
-
-                                <TextBlock Text="Сортировка (-S)" Foreground="{StaticResource Brush.Muted}" Margin="0,8,0,2"/>
-                                <Grid>
+                                <TextBlock Text="Сортировка (-S)" Foreground="{StaticResource Brush.Muted}" Margin="0,6,0,0"/>
+                                <Grid Margin="0,6,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="230"/>
                                         <ColumnDefinition Width="*" />
@@ -201,25 +220,25 @@
                                         <ComboBoxItem Content="codec:h264"/>
                                         <ComboBoxItem Content="+res:480"/>
                                     </ComboBox>
-                                    <TextBox x:Name="SortText" Grid.Column="1" Margin="6,0,0,0" ToolTip="Строка для -S (--format-sort)"/>
+                                    <TextBox x:Name="SortText" Grid.Column="1" Margin="6,0,0,0" ToolTip="Произвольная строка для -S (--format-sort)"/>
                                 </Grid>
-
-                                <Border Style="{StaticResource Card}">
-                                    <StackPanel>
-                                        <TextBlock Text="Субтитры" Foreground="{StaticResource Brush.Muted}"/>
-                                        <ItemsControl x:Name="SubsItems">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <CheckBox Content="{Binding}" />
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </StackPanel>
-                                </Border>
                             </StackPanel>
                         </Expander>
 
-                        <!-- Выходная папка + кнопки -->
+                        <!-- Субтитры -->
+                        <Expander Header="Субтитры" IsExpanded="False" Margin="0,10,0,0">
+                            <Border Style="{StaticResource Card}">
+                                <ItemsControl x:Name="SubsItems">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Content="{Binding}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+                        </Expander>
+
+                        <!-- Выходная папка и кнопки -->
                         <TextBlock Text="Папка сохранения" Foreground="{StaticResource Brush.Muted}" Margin="0,10,0,6"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -242,9 +261,9 @@
                     </StackPanel>
                 </Grid>
             </Border>
+        </ScrollViewer>
 
-            <!-- Статус -->
-            <TextBlock Grid.Row="4" x:Name="StatusText" Foreground="{StaticResource Brush.Muted}" Text="Готово" />
-        </Grid>
-    </ScrollViewer>
+        <!-- Статус -->
+        <TextBlock Grid.Row="3" x:Name="StatusText" Foreground="{StaticResource Brush.Muted}" Text="Готово" />
+    </Grid>
 </Window>
