@@ -466,12 +466,25 @@ namespace YtDlpGui.Wpf
         }
 
         private void BuildSubtitles()
-        {
-            SubsItems.ItemsSource = null;
-            if (_info?.subtitles == null || _info.subtitles.Count == 0) return;
-            var langs = _info.subtitles.Keys.ToList();
-            SubsItems.ItemsSource = langs;
-        }
+{
+    if (SubsItems == null) return;
+    SubsItems.ItemsSource = null;
+    if (_info?.subtitles == null || _info.subtitles.Count == 0) return;
+    var langs = _info.subtitles.Keys.ToList();
+    SubsItems.ItemsSource = langs;
+}
+
+private List<string> GetCheckedSubLangs()
+{
+    var res = new List<string>();
+    if (SubsItems == null) return res;
+
+    foreach (var cb in FindVisualChildren<CheckBox>(SubsItems))
+        if (cb.IsChecked == true && cb.Content != null)
+            res.Add(cb.Content.ToString());
+
+    return res.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+}
 
         // ---------- Селектор форматов ----------
 
@@ -679,13 +692,7 @@ namespace YtDlpGui.Wpf
             => string.IsNullOrEmpty(t) ? t
                : (t.Contains(" ") || t.Contains("+") || t.Contains(",") || t.Contains("[") || t.Contains("]")) ? $"\"{t}\"" : t;
 
-        private List<string> GetCheckedSubLangs()
-        {
-            var res = new List<string>();
-            foreach (var cb in FindVisualChildren<CheckBox>(SubsItems))
-                if (cb.IsChecked == true && cb.Content != null) res.Add(cb.Content.ToString());
-            return res.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        }
+        
 
         private static IEnumerable<T> FindVisualChildren<T>(DependencyObject root) where T : DependencyObject
         {
