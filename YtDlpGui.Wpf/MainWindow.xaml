@@ -51,42 +51,46 @@
                         </Border>
 
                         <!-- Действия: пути, кнопки, прогресс -->
-                        <Border Style="{StaticResource Card}">
-                            <StackPanel>
-                                <TextBlock Text="Сохранение и инструменты" Foreground="{StaticResource Brush.Muted}"/>
+<Border Style="{StaticResource Card}">
+    <StackPanel>
+        <TextBlock Text="Сохранение и инструменты" Foreground="{StaticResource Brush.Muted}"/>
 
-                                <!-- Папка сохранения -->
-                                <TextBlock Text="Папка сохранения" Foreground="{StaticResource Brush.Muted}" Margin="0,8,0,6"/>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="OutputFolderText" MinHeight="32" Grid.Column="0" Margin="0,0,6,0"/>
-                                    <Button Content="Обзор" Grid.Column="1" Click="BrowseOutput_Click"/>
-                                </Grid>
+        <!-- Папка сохранения -->
+        <TextBlock Text="Папка сохранения" Foreground="{StaticResource Brush.Muted}" Margin="0,8,0,6"/>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="OutputFolderText" MinHeight="32" Grid.Column="0" Margin="0,0,6,0"/>
+            <Button Content="Обзор" Grid.Column="1" Click="BrowseOutput_Click"/>
+        </Grid>
 
-                                <!-- yt-dlp -->
-                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                    <TextBlock Text="yt-dlp:" Foreground="{StaticResource Brush.Muted}" VerticalAlignment="Center"/>
-                                    <TextBox x:Name="YtDlpPathText" Width="260" Margin="6,0,0,0"
-                                             ToolTip="Путь к yt-dlp.exe (если не в PATH)"/>
-                                    <Button Content="Обзор" Click="BrowseYtDlp_Click"/>
-                                </StackPanel>
+        <!-- yt-dlp -->
+        <TextBlock Text="yt-dlp" Foreground="{StaticResource Brush.Muted}" Margin="0,10,0,6"/>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="YtDlpPathText" MinHeight="32" Grid.Column="0" Margin="0,0,6,0"
+                     ToolTip="Путь к yt-dlp.exe (если не в PATH)"/>
+            <Button Content="Обзор" Grid.Column="1" Click="BrowseYtDlp_Click"/>
+        </Grid>
 
-                                <!-- Кнопки -->
-                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                    <Button x:Name="DownloadBtn" Content="Скачать" Click="DownloadBtn_Click"/>
-                                    <Button x:Name="CancelBtn" Content="Отмена" Click="CancelBtn_Click" IsEnabled="False"/>
-                                    <Button Content="Открыть папку" Click="OpenFolder_Click"/>
-                                    <Button Content="Скопировать команду" Click="CopyCmd_Click"/>
-                                </StackPanel>
+        <!-- Кнопки -->
+        <WrapPanel Margin="0,10,0,0" ItemHeight="32" ItemWidth="120">
+            <Button x:Name="DownloadBtn" Content="Скачать" Click="DownloadBtn_Click" MinWidth="110"/>
+            <Button x:Name="CancelBtn" Content="Отмена" Click="CancelBtn_Click" IsEnabled="False" MinWidth="110"/>
+            <Button Content="Открыть папку" Click="OpenFolder_Click" MinWidth="120"/>
+            <Button Content="Скопировать команду" Click="CopyCmd_Click" MinWidth="150"/>
+        </WrapPanel>
 
-                                <!-- Прогресс -->
-                                <ProgressBar x:Name="ProgressBar" Margin="0,10,0,0" Minimum="0" Maximum="100" Height="8"/>
-                                <TextBlock x:Name="ProgressText" Foreground="{StaticResource Brush.Muted}" Margin="0,4,0,0"/>
-                            </StackPanel>
-                        </Border>
+        <!-- Прогресс -->
+        <ProgressBar x:Name="ProgressBar" Margin="0,10,0,0" Minimum="0" Maximum="100" Height="8"/>
+        <TextBlock x:Name="ProgressText" Foreground="{StaticResource Brush.Muted}" Margin="0,4,0,0"/>
+    </StackPanel>
+</Border>
                     </StackPanel>
 
                     <!-- Правая панель -->
