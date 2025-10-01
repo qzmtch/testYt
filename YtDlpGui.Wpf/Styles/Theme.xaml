@@ -35,9 +35,9 @@
         <Setter Property="TextWrapping" Value="NoWrap"/>
     </Style>
 
-    <!-- Карточка -->
+    <!-- Карточка (небольшое скругление) -->
     <Style x:Key="Card" TargetType="Border">
-        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="CornerRadius" Value="4"/>
         <Setter Property="Background" Value="{StaticResource Brush.Card}"/>
         <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -45,7 +45,7 @@
         <Setter Property="Margin" Value="0,10,0,0"/>
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.25" Color="#000000"/>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.25" Color="#000000"/>
             </Setter.Value>
         </Setter>
     </Style>
@@ -62,7 +62,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}">
+                    <Border x:Name="bd" CornerRadius="3" Background="{TemplateBinding Background}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,3"/>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -92,7 +92,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border CornerRadius="8" Background="{TemplateBinding Background}"
+                    <Border CornerRadius="3" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <ScrollViewer x:Name="PART_ContentHost" Margin="4,2,4,2"/>
                     </Border>
@@ -129,7 +129,7 @@
                             <ColumnDefinition Width="34"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border x:Name="Bd" Grid.ColumnSpan="2" CornerRadius="8"
+                        <Border x:Name="Bd" Grid.ColumnSpan="2" CornerRadius="3"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"/>
@@ -148,7 +148,7 @@
 
                         <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}"
                                AllowsTransparency="True" Focusable="False" StaysOpen="False">
-                            <Border CornerRadius="8" Background="{StaticResource Brush.Card}"
+                            <Border CornerRadius="3" Background="{StaticResource Brush.Card}"
                                     BorderBrush="{StaticResource Brush.Border}" BorderThickness="1">
                                 <ScrollViewer Style="{x:Null}">
                                     <ItemsPresenter/>
@@ -333,7 +333,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
-                    <Border CornerRadius="8"
+                    <Border CornerRadius="3"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
@@ -379,13 +379,13 @@
         </ControlTemplate.Triggers>
     </ControlTemplate>
 
-    <!-- Expander -->
+    <!-- Expander (скругление небольшое) -->
     <Style TargetType="Expander">
         <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Expander">
-                    <Border CornerRadius="10"
+                    <Border CornerRadius="4"
                             Background="{StaticResource Brush.Card}"
                             BorderBrush="{StaticResource Brush.Border}"
                             BorderThickness="1"
@@ -413,7 +413,6 @@
                                               Focusable="False"/>
                         </Grid>
                     </Border>
-                    <!-- ВАЖНО: триггеры ДОЛЖНЫ быть ПРЯМЫМ дочерним элементом ControlTemplate -->
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsExpanded" Value="True">
                             <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible"/>
