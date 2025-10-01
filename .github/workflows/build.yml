@@ -2,7 +2,10 @@ name: Build
 
 on:
   workflow_dispatch:
-
+  
+permissions:
+  contents: write
+  
 jobs:
   build:
     runs-on: windows-latest
@@ -29,8 +32,13 @@ jobs:
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
           Copy-Item -Force "YtDlpGui.Wpf\bin\Release\ytdlg.exe" "artifacts\"
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Publish ytdlg.exe to release (tag ytdlg, overwrite)
+        uses: softprops/action-gh-release@v2
         with:
+          tag_name: ytdlg
           name: ytdlg
-          path: artifacts
+          files: YtDlpGui.Wpf/bin/Release/ytdlg.exe
+          overwrite_files: true
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
