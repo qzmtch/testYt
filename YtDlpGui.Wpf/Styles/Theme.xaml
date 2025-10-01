@@ -35,7 +35,7 @@
         <Setter Property="TextWrapping" Value="NoWrap"/>
     </Style>
 
-    <!-- Карточка (небольшое скругление) -->
+    <!-- Карточка (меньше скругление + обрезаем тень) -->
     <Style x:Key="Card" TargetType="Border">
         <Setter Property="CornerRadius" Value="4"/>
         <Setter Property="Background" Value="{StaticResource Brush.Card}"/>
@@ -43,9 +43,11 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="14"/>
         <Setter Property="Margin" Value="0,10,0,0"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="ClipToBounds" Value="True"/>
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.25" Color="#000000"/>
+                <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.22" Color="#000000"/>
             </Setter.Value>
         </Setter>
     </Style>
@@ -134,7 +136,6 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"/>
 
-                        <!-- Выбранное значение -->
                         <ContentPresenter Grid.Column="0" Margin="10,2,6,2"
                                           Content="{TemplateBinding SelectionBoxItem}"
                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
@@ -159,6 +160,7 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+
         <Setter Property="ItemContainerStyle">
             <Setter.Value>
                 <Style TargetType="ComboBoxItem">
@@ -345,7 +347,7 @@
         </Setter>
     </Style>
 
-    <!-- Кнопка заголовка для Expander: стрелка + текст -->
+    <!-- Expander header: стрелка + текст -->
     <ControlTemplate x:Key="ExpanderHeaderToggle" TargetType="ToggleButton">
         <Border Background="Transparent" Padding="6,8">
             <DockPanel LastChildFill="True">
@@ -379,7 +381,7 @@
         </ControlTemplate.Triggers>
     </ControlTemplate>
 
-    <!-- Expander (скругление небольшое) -->
+    <!-- Expander -->
     <Style TargetType="Expander">
         <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
         <Setter Property="Template">
@@ -389,7 +391,8 @@
                             Background="{StaticResource Brush.Card}"
                             BorderBrush="{StaticResource Brush.Border}"
                             BorderThickness="1"
-                            SnapsToDevicePixels="True">
+                            SnapsToDevicePixels="True"
+                            ClipToBounds="True">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
