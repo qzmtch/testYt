@@ -119,22 +119,15 @@ namespace YtDlpGui.Wpf.Services
         using (ct.Register(() =>
         {
             cancelRequested = true;
-
-            // 1) мягко — посылаем 'q' и закрываем stdin
             try { if (!p.HasExited) { p.StandardInput.WriteLine("q"); p.StandardInput.Flush(); } } catch { }
             try { if (!p.HasExited) p.StandardInput.Close(); } catch { }
 
-            // 2) даём время yt-dlp завершиться корректно
-            Task.Run(async () =>
+            Task.Run(() =>
             {
                 try
                 {
-                    var exited = p.WaitForExit(2000);
-                    if (!exited)
-                    {
-                        // 3) если не вышел — завершаем дерево
-                        try { job.Terminate(1); } catch { }
-                    }
+                    if (!p.WaitForExit(2000))
+                        job.Terminate(1);
                 }
                 catch { }
             });
@@ -148,7 +141,8 @@ namespace YtDlpGui.Wpf.Services
             try { stdout = await stdoutTask.ConfigureAwait(false); } catch { }
             try { stderr = await stderrTask.ConfigureAwait(false); } catch { }
 
-            if (cancelRequested)
+            // Любая отмена – это не ошибка
+            if (cancelRequested || ct.IsCancellationRequested)
                 throw new OperationCanceledException(ct);
 
             if (code != 0 && string.IsNullOrWhiteSpace(stdout))
