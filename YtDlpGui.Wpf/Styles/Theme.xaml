@@ -28,6 +28,9 @@
         <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
     </Style>
 
     <Style TargetType="TextBlock">
@@ -45,11 +48,6 @@
         <Setter Property="Margin" Value="0,8,0,0"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="ClipToBounds" Value="True"/>
-        <Setter Property="Effect">
-            <Setter.Value>
-                <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.2" Color="#000000"/>
-            </Setter.Value>
-        </Setter>
     </Style>
 
     <!-- Кнопка (компактная) -->
