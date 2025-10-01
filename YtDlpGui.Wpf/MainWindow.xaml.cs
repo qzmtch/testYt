@@ -36,6 +36,8 @@ namespace YtDlpGui.Wpf
         public MainWindow()
         {
             InitializeComponent();
+
+            // дефолтная папка — рабочий стол (ничего не создаём)
             OutputFolderText.Text = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
             this.Loaded += async (_, __) =>
@@ -45,7 +47,7 @@ namespace YtDlpGui.Wpf
             };
         }
 
-        // ---- Пресеты ----
+        // ---------- Пресеты ----------
 
         private async Task LoadPresetsAsync()
         {
@@ -177,7 +179,7 @@ namespace YtDlpGui.Wpf
             SortText.Text = content;
         }
 
-        // ---- Получение инфо ----
+        // ---------- Получение информации ----------
 
         private async void FetchBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -212,7 +214,7 @@ namespace YtDlpGui.Wpf
                 _allFormats = _info.formats ?? new List<Format>();
                 BuildFilters();
                 ApplyFilters();
-                BuildSubtitles();
+                BuildSubtitles(); // <--- метод есть ниже
 
                 StatusText.Text = "Информация получена.";
             }
@@ -252,7 +254,7 @@ namespace YtDlpGui.Wpf
             catch { }
         }
 
-        // ---- Фильтры/форматы ----
+        // ---------- Фильтры / форматы ----------
 
         private void BuildFilters()
         {
@@ -350,7 +352,15 @@ namespace YtDlpGui.Wpf
             ApplyFilters();
         }
 
-        // ---- Построение селектора ----
+        private void BuildSubtitles()
+        {
+            SubsItems.ItemsSource = null;
+            if (_info?.subtitles == null || _info.subtitles.Count == 0) return;
+            var langs = _info.subtitles.Keys.ToList();
+            SubsItems.ItemsSource = langs;
+        }
+
+        // ---------- Построение селектора ----------
 
         private string BuildFormatSelectorFromSelection(out bool useCommaTemplate)
         {
@@ -374,7 +384,7 @@ namespace YtDlpGui.Wpf
             return string.Join(joiner, ids);
         }
 
-        // ---- Загрузка ----
+        // ---------- Загрузка по выбранным форматам ----------
 
         private async void DownloadBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -392,17 +402,14 @@ namespace YtDlpGui.Wpf
             bool useCommaTemplate;
             string selector = BuildFormatSelectorFromSelection(out useCommaTemplate);
 
-            // Шаблон: при ',' делаем уникальные имена по format_id
             string template = useCommaTemplate
                 ? Path.Combine(outDir, "%(title)s.f%(format_id)s.%(ext)s")
                 : Path.Combine(outDir, "%(title)s [%(id)s].%(ext)s");
 
-            // Субтитры
             var checkedLangs = GetCheckedSubLangs();
             bool writeSubs = checkedLangs.Count > 0;
             string subLangs = string.Join(",", checkedLangs);
 
-            // Ключи
             bool ignoreCfg = IgnoreConfigCheck.IsChecked == true;
             bool vMulti = VideoMultistreamsCheck.IsChecked == true;
             bool aMulti = AudioMultistreamsCheck.IsChecked == true;
@@ -468,6 +475,8 @@ namespace YtDlpGui.Wpf
 
         private void CancelBtn_Click(object sender, RoutedEventArgs e) => _cts?.Cancel();
 
+        // ---------- Прочее: диалоги/копирование/поиск контролов ----------
+
         private void BrowseOutput_Click(object sender, RoutedEventArgs e)
         {
             using (var dlg = new WinForms.FolderBrowserDialog())
@@ -525,6 +534,17 @@ namespace YtDlpGui.Wpf
 
             try { Clipboard.SetText(sb.ToString()); } catch { }
             StatusText.Text = "Команда скопирована.";
+        }
+
+        private void BrowseYtDlp_Click(object sender, RoutedEventArgs e)
+        {
+            var ofd = new OpenFileDialog
+            {
+                Filter = "yt-dlp|yt-dlp.exe|Все файлы|*.*",
+                Title = "Укажите yt-dlp.exe"
+            };
+            if (ofd.ShowDialog() == true)
+                YtDlpPathText.Text = ofd.FileName;
         }
 
         private static string QuoteIfNeeded(string t)
